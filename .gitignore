@@ -1,9 +1,10 @@
 target/
 
-#.classpath
-#.project
-#.springBeans
-#.setting/
+.classpath
+.project
+.springBeans
+.settings/
+.mvn/
 
 # Compiled class file
 *.class
