@@ -1,3 +1,10 @@
+target/
+
+#.classpath
+#.project
+#.springBeans
+#.setting/
+
 # Compiled class file
 *.class
 
