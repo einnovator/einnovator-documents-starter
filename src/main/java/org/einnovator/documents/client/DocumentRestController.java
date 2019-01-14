@@ -8,7 +8,8 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +28,7 @@ import org.einnovator.documents.client.model.Document;
 @RequestMapping({"/api"})
 public class DocumentRestController extends ControllerBase {
 
-	private Logger logger = Logger.getLogger(this.getClass());
+	private final Log logger = LogFactory.getLog(getClass());
 	
 	@Autowired
 	private DocumentsClient docClient;
@@ -70,7 +71,7 @@ public class DocumentRestController extends ControllerBase {
 	}
 	
 	@PostMapping("/__/**")
-	public ResponseEntity<Void> createFolder(@ModelAttribute("document") Document document, BindingResult errors, HttpServletRequest request, Principal principal, Authentication authentication) {
+	public ResponseEntity<Void> mkdir(@ModelAttribute("document") Document document, BindingResult errors, HttpServletRequest request, Principal principal, Authentication authentication) {
 		if (principal==null) {
 			logger.error("newFolder:  " + HttpStatus.UNAUTHORIZED.getReasonPhrase());
 			return new ResponseEntity<Void>(HttpStatus.UNAUTHORIZED);	

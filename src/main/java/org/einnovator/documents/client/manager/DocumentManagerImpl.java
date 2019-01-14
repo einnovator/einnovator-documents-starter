@@ -4,7 +4,8 @@ import java.net.URI;
 import java.security.Principal;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -21,7 +22,7 @@ public class DocumentManagerImpl implements DocumentManager {
 	public static final String CACHE_DOCUMENT = "Document";
 	public static final String CACHE_FOLDER = "Folder";
 
-	private Logger logger = Logger.getLogger(this.getClass());
+	private final Log logger = LogFactory.getLog(getClass());
 
 	@Autowired
 	private DocumentsClient client;

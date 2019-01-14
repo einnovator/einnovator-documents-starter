@@ -38,7 +38,7 @@ import org.einnovator.documents.client.model.Permission;
 import org.einnovator.documents.client.model.PermissionType;
 import org.einnovator.documents.client.model.SubjectType;
 import org.einnovator.documents.client.model.Template;
-import org.einnovator.sso.client.SsoTestHelper;
+import org.einnovator.sso.client.support.SsoTestHelper;
 
 import static org.einnovator.util.Profiler.run;
 
@@ -743,7 +743,7 @@ public class DocumentsManagerTests extends SsoTestHelper {
 	}
 
 	@Test
-	public void createFolder() {
+	public void mkdir() {
 		URI location = manager.newFolder("folder");
 		Document folder = manager.meta("folder/");
 		assertTrue(folder.isFolder());

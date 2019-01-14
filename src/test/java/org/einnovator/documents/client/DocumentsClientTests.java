@@ -37,7 +37,7 @@ import org.einnovator.documents.client.model.Permission;
 import org.einnovator.documents.client.model.PermissionType;
 import org.einnovator.documents.client.model.SubjectType;
 import org.einnovator.documents.client.model.Template;
-import org.einnovator.sso.client.SsoTestHelper;
+import org.einnovator.sso.client.support.SsoTestHelper;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = { DocumentsClientConfig.class,
@@ -733,7 +733,7 @@ public class DocumentsClientTests extends SsoTestHelper {
 	}
 
 	@Test
-	public void createFolder() {
+	public void mkdir() {
 		URI location = client.newFolder("folder");
 		Document folder = client.meta("folder/");
 		assertTrue(folder.isFolder());
