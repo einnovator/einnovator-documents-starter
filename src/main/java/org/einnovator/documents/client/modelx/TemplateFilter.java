@@ -1,4 +1,4 @@
-package org.einnovator.documents.client;
+package org.einnovator.documents.client.modelx;
 
 
 public class TemplateFilter {

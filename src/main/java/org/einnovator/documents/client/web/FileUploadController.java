@@ -1,4 +1,4 @@
-package org.einnovator.documents.client;
+package org.einnovator.documents.client.web;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -8,11 +8,16 @@ import java.io.InputStream;
 import java.net.URI;
 import java.security.Principal;
 import java.util.List;
-import java.util.UUID;
 
 import javax.imageio.ImageIO;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.einnovator.documents.client.DocumentsClient;
+import org.einnovator.documents.client.config.FilesConfiguration;
+import org.einnovator.documents.client.model.Document;
+import org.einnovator.util.PathUtil;
+import org.einnovator.util.UriUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,13 +28,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
-import org.einnovator.util.PathUtil;
-import org.einnovator.util.UriUtils;
-import org.einnovator.documents.client.model.Document;
-
 public class FileUploadController extends ControllerBase {
 
-	private Logger logger = Logger.getLogger(this.getClass());
+	private final Log logger = LogFactory.getLog(getClass());
 
 	@Autowired
 	protected DocumentsClient docClient;
@@ -185,13 +186,13 @@ public class FileUploadController extends ControllerBase {
 				return location;
 			}
 			if (StringUtils.hasText(folder)) {
-				return PathUtil.pconcat(config.getRoot(),
-						PathUtil.pconcat(folder, getResourceName(key, name, appendUuid)));
+				return PathUtil.concat(config.getRoot(),
+						PathUtil.concat(folder, getResourceName(key, name, appendUuid)));
 			} else if (StringUtils.hasText(key)) {
 				key = key.trim();
 				folder = config.getFolder(key);
 				if (folder != null) {
-					return PathUtil.pconcat(folder, getResourceName(key, name, appendUuid));
+					return PathUtil.concat(folder, getResourceName(key, name, appendUuid));
 				}
 			}
 			return config.getRoot() + getResourceName(key, name, appendUuid);

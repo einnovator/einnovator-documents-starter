@@ -1,4 +1,4 @@
-package org.einnovator.documents.client;
+package org.einnovator.documents.client.config;
 
 import java.util.Arrays;
 import java.util.HashMap;

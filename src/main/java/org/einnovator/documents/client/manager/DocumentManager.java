@@ -5,12 +5,11 @@ import java.security.Principal;
 import java.util.List;
 
 import org.springframework.cache.Cache;
-
-import org.einnovator.documents.client.DocumentFilter;
-import org.einnovator.documents.client.TemplateFilter;
 import org.einnovator.documents.client.model.Document;
 import org.einnovator.documents.client.model.Permission;
 import org.einnovator.documents.client.model.Template;
+import org.einnovator.documents.client.modelx.DocumentFilter;
+import org.einnovator.documents.client.modelx.TemplateFilter;
 
 public interface DocumentManager {
 

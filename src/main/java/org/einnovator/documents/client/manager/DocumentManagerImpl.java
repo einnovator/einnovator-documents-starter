@@ -9,13 +9,12 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-
-import org.einnovator.documents.client.DocumentFilter;
 import org.einnovator.documents.client.DocumentsClient;
-import org.einnovator.documents.client.TemplateFilter;
 import org.einnovator.documents.client.model.Document;
 import org.einnovator.documents.client.model.Permission;
 import org.einnovator.documents.client.model.Template;
+import org.einnovator.documents.client.modelx.DocumentFilter;
+import org.einnovator.documents.client.modelx.TemplateFilter;
 
 public class DocumentManagerImpl implements DocumentManager {
 

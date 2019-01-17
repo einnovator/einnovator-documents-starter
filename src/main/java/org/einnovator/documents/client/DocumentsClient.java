@@ -2,7 +2,7 @@ package org.einnovator.documents.client;
 
 import static org.einnovator.util.UriUtils.appendFormattedQueryParameters;
 import static org.einnovator.util.UriUtils.appendQueryParameter;
-import static org.einnovator.documents.client.DocumentsEndpoints.makeURI;
+import static org.einnovator.util.UriUtils.makeURI;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -32,9 +32,13 @@ import org.springframework.web.client.RestClientException;
 
 import org.einnovator.util.MappingUtils;
 import org.einnovator.util.UriUtils;
+import org.einnovator.documents.client.config.DocumentsConfiguration;
+import org.einnovator.documents.client.config.DocumentsEndpoints;
 import org.einnovator.documents.client.model.Document;
 import org.einnovator.documents.client.model.Permission;
 import org.einnovator.documents.client.model.Template;
+import org.einnovator.documents.client.modelx.DocumentFilter;
+import org.einnovator.documents.client.modelx.TemplateFilter;
 
 /**
  * Client API for Document Gateway.

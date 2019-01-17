@@ -1,4 +1,4 @@
-package org.einnovator.documents.client;
+package org.einnovator.documents.client.web;
 
 import java.security.Principal;
 

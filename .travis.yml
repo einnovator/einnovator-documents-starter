@@ -1,0 +1,80 @@
+language: java
+
+services:
+- docker
+cache:
+  directories:
+  - "$HOME/.cache"
+  
+before_install:
+  - chmod +x mvnw
+install:
+  - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V -P s3 -s .travis.settings.xml
+script:
+  - mvn test -B  -P s3 -s .travis.settings.xml
+
+env:
+  global:
+    - PCKCLOUD_TOKEN: 14eb87ed18ebe535fddbf9880b0b4f56d723266d0fc32c9d #packagecloud.io
+    - GITHUB_TOKEN: "5adc2bc01f814f242bb87b09d8a21316f29812ea" #ci
+    - SPRING_PROFILES_ACTIVE: cloud
+
+before_deploy:
+  - echo 'before_deploy:....'
+  - if ! [[ $TRAVIS_TAG ]]; then
+      git config --local user.name "jsimao71";
+      git config --local user.email "jsimao71@gmail.com";
+      export TRAVIS_TAG=${TRAVIS_TAG:-$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)};
+      git tag $TRAVIS_TAG;
+    fi
+
+deploy:
+  - provider: script
+    skip_cleanup: true
+    overwrite: true
+    script: "mvn deploy -DskipTests -Ps3 -s .travis.settings.xml"
+  #- provider: script
+  #  overwrite: true
+  #  script: "mvn deploy -DskipTests -Ppackagecloud"
+  #  skip_cleanup: true
+  #- provider: s3
+  #  access_key_id: "AKIAIVWCFWEK3CKJGIKQ"
+  #  secret_access_key: "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"
+  #  overwrite: true
+  #  local_dir: "$TRAVIS_BUILD_DIR/target/einnovator-util-1.5.17.0.RELEASE.jar"
+    #access_key_id: "AKIAILQVHTGV6Y7TVRCA"
+    #secret_access_key: "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"
+  #  bucket: "einnovator-mvnrepo"
+  #  skip_cleanup: true
+  - provider: releases
+    api_key: "5adc2bc01f814f242bb87b09d8a21316f29812ea"
+    file: "$TRAVIS_BUILD_DIR/target/einnovator-util-1.5.17.0.RELEASE.jar"
+    skip_cleanup: true
+    draft: true
+    overwrite: true
+    #on:
+    # tags: true   
+  #- provider: packagecloud
+  #  repository: "einnovator"
+  #  username: "einnovator"
+  #  file: "$TRAVIS_BUILD_DIR/target/einnovator-util-1.5.17.0.RELEASE.jar"
+  #  token: "$PCKCLOUD_TOKEN"
+  #  draft: true
+  #  skip_cleanup: true
+  #  overwrite: true
+    #on:
+    # tags: true
+    #dist: "ubuntu/precise"
+
+  
+after_deploy: 
+  - "echo 'Deployment Done!'"
+  
+  
+notifications:
+  #email:
+  #  - ci@einnovator.org
+  slack:
+    rooms:
+      - "einnovator:yAq0Xm9vZe8oFIRyX53KlphI#ci"
+  

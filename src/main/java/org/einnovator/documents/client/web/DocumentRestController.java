@@ -1,4 +1,4 @@
-package org.einnovator.documents.client;
+package org.einnovator.documents.client.web;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-
+import org.einnovator.documents.client.DocumentsClient;
 import org.einnovator.documents.client.model.Document;
 
 

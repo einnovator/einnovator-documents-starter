@@ -29,7 +29,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.StreamUtils;
-
+import org.einnovator.documents.client.config.DocumentsClientConfig;
 import org.einnovator.documents.client.manager.DocumentManager;
 import org.einnovator.documents.client.model.Document;
 import org.einnovator.documents.client.model.DocumentBuilder;
@@ -38,6 +38,7 @@ import org.einnovator.documents.client.model.Permission;
 import org.einnovator.documents.client.model.PermissionType;
 import org.einnovator.documents.client.model.SubjectType;
 import org.einnovator.documents.client.model.Template;
+import org.einnovator.documents.client.modelx.TemplateFilter;
 import org.einnovator.sso.client.support.SsoTestHelper;
 
 import static org.einnovator.util.Profiler.run;
