@@ -1,30 +1,35 @@
 package org.einnovator.documents.client.modelx;
 
+import org.einnovator.util.model.ToStringCreator;
 
-public class DocumentFilter {
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
-	private String subject;
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown=true)
+public class DocumentFilter extends DocumentOptions {
 
-	private String category;
+	protected String q;
 	
-	private String template;
+	protected Boolean strict;
 	
-	private String q;
-	
-	private String encoding;
-	
-	private String organization;
-	
-	private String products;
-	
-	private String location;
+	protected String category;
+		
+	protected String tags;
 
-	private String tags;
+	protected Boolean folders;
 	
-	private Boolean onlyFeatured;
-
-	
+	protected String marker;
+	 
 	public DocumentFilter() {
+	}	
+
+	public String getQ() {
+		return q;
+	}
+
+	public void setQ(String q) {
+		this.q = q;
 	}
 	
 	public String getCategory() {
@@ -43,40 +48,8 @@ public class DocumentFilter {
 		this.encoding = encoding;
 	}
 
-	public String getTemplate() {
-		return template;
-	}
-
-	public void setTemplate(String template) {
-		this.template = template;
-	}
-
 	public void setEncoding(String encoding) {
 		this.encoding = encoding;
-	}
-
-	public String getOrganization() {
-		return organization;
-	}
-
-	public void setOrganization(String organization) {
-		this.organization = organization;
-	}
-
-	public String getProducts() {
-		return products;
-	}
-
-	public void setProducts(String products) {
-		this.products = products;
-	}
-
-	public String getLocation() {
-		return location;
-	}
-
-	public void setLocation(String location) {
-		this.location = location;
 	}
 
 	public String getTags() {
@@ -87,47 +60,25 @@ public class DocumentFilter {
 		this.tags = tags;
 	}
 
-	public String getSubject() {
-		return subject;
-	}
-
-	public void setSubject(String subject) {
-		this.subject = subject;
-	}
 	
-	public String getQ() {
-		return q;
+	public String getMarker() {
+		return marker;
 	}
 
-	public void setQ(String q) {
-		this.q = q;
-	}
-	
-	public Boolean getOnlyFeatured() {
-		return onlyFeatured;
-	}
-
-	public void setOnlyFeatured(Boolean onlyFeatured) {
-		this.onlyFeatured = onlyFeatured;
+	public void setMarker(String marker) {
+		this.marker = marker;
 	}
 
 	@Override
-	public String toString() {
-		return this.getClass().getSimpleName() + " ["
-				+ (subject != null ? "subject=" + subject + ", " : "")
-				+ (category != null ? "category=" + category + ", " : "")
-				+ (template != null ? "template=" + template + ", " : "")
-				+ (q != null ? "q=" + q + ", " : "")
-				+ (encoding != null ? "encoding=" + encoding + ", " : "")
-				+ (organization != null ? "organization=" + organization + ", " : "")
-				+ (products != null ? "products=" + products + ", " : "")
-				+ (location != null ? "location=" + location + ", " : "")
-				+ (onlyFeatured != null ? "onlyFeatured=" + onlyFeatured + ", " : "") 
-				+ (tags != null ? "tags=" + tags : "") 
-				+ "]";
+	public ToStringCreator toString0(ToStringCreator creator) {
+		return super.toString0(creator)
+				.append("q", q)
+				.append("strict", strict)
+				.append("category", category)
+				.append("tags", tags)
+				.append("folders", folders)
+				.append("marker", marker)
+				;
 	}
 
-
-
-	
 }

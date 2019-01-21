@@ -1,185 +1,249 @@
 package org.einnovator.documents.client.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.util.StringUtils;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-@JsonIgnoreProperties(ignoreUnknown=true)
 public class Permission {
 
-	private String group;
-	private String user;
-	private boolean allPerm;
+	public static final Permission PUBLIC = new Permission(true);
 
-	private List<PermissionType> permTypes = new ArrayList<>();
+	public static final Permission ROLE = new Permission(PermissionType.ROLE, PermissionType.PERMISSION);
 
+	private Boolean publik;
 
-	public List<PermissionType> getPermTypes() {
-		return permTypes;
+	private List<Owner> owners;
+	
+	private List<PermissionType> allow;
+	
+	private List<PermissionType> deny;
+
+	public Permission() {
 	}
 
-	public void setPermTypes(List<PermissionType> permTypes) {
-		this.permTypes = permTypes;
+	public Permission(PermissionType... allow) {
+		this.allow = new ArrayList<>(Arrays.asList(allow));
 	}
 
-	public String getGroup() {
-		return group;
+	public Permission(List<Owner> owners, PermissionType... allow) {
+		this.owners = owners;
+		this.allow = new ArrayList<>(Arrays.asList(allow));
 	}
 
-	public void setGroup(String group) {
-		this.group = group;
+	public Permission(Owner[] owners, PermissionType... allow) {
+		this.owners = new ArrayList<>(Arrays.asList(owners));
+		this.allow = new ArrayList<>(Arrays.asList(allow));
 	}
 
-	public String getUser() {
-		return user;
+	public Permission(Owner owner, PermissionType... allow) {
+		this(new Owner[] {owner}, allow);
 	}
 
-	public void setUser(String user) {
-		this.user = user;
+	public Permission(String username, PermissionType... allow) {
+		this(Owner.user(username), allow);
 	}
 
-//	public List<PermissionType> getPermissions() {
-//		return permTypes;
-//	}
-//
-//	public void setPermissions(Set<PermissionType> permissions) {
-//		this.permTypes = permissions;
-//	}
-
-//	public String getAllowedUser() {
-//		if (allPerm) {
-//			return "@";
-//		}
-//		if (StringUtils.hasText(group)) {
-//			return group;
-//		}
-//		if (StringUtils.hasText(user)) {
-//			return user;
-//		}
-//		return ".";
-//	}
-
-	public void setAllPerm() {
-		this.allPerm = true;
+	public Permission(Boolean publik) {
+		this.publik = publik;
+		if (Boolean.TRUE.equals(publik)) {
+			allow = new ArrayList<>();
+			allow.add(PermissionType.READ);			
+		}
 	}
 	
-	public boolean getAllPerm() {
-		return this.allPerm;
-	}
-//
-//	public String toString() {
-//		StringBuilder builder = new StringBuilder();
-//		builder.append(getAllowedUser());
-//		builder.append('#');
-//		for (PermissionType p : permTypes) {
-//			builder.append(p);
-//		}
-//
-//		return builder.toString();
-//	}
-
-//	public static List<Permission> permissionFromString(String permissionsText) {
-//		if (!StringUtils.hasText(permissionsText)) {
-//			return new ArrayList<>();
-//		}
-//
-//		String[] permissionTokens = permissionsText.split(",");
-//		// Pattern pattern = Pattern.compile("(@\\w*|\\\\.|\\w+)\\\\.(\\w*)");
-//		List<Permission> permissionsList = new ArrayList<>();
-//
-//		for (String p : permissionTokens) {
-//			Permission userPermission = new Permission();
-//			// Set<PermissionType> permTypes = new HashSet<>();
-//			// Matcher matcher = pattern.matcher(p);
-//			// String user = matcher.group(0);
-//			// String permissionString = matcher.group(1);
-//			String[] pTokens = p.split("#");
-//			String user = pTokens[0];
-//			String permissionString = pTokens[1];
-//
-//			if (user.equals("@")) {
-//				userPermission.setAllPerm();
-//			} else if (user.startsWith("@")) {
-//				userPermission.setGroup(user);
-//			} else if (!user.equals(".")) {
-//				userPermission.setUser(user);
-//			}
-//
-//			if (permissionString.contains("READ")) {
-//				userPermission.addPermission(PermissionType.READ);
-//			}
-//			if (permissionString.contains("WRITE")) {
-//				userPermission.addPermission(PermissionType.WRITE);
-//			}
-//			if (permissionString.contains("DOWNLOAD")) {
-//				userPermission.addPermission(PermissionType.DOWNLOAD);
-//			}
-//			if (permissionString.contains("SHARE")) {
-//				userPermission.addPermission(PermissionType.SHARE);
-//			}
-//			permissionsList.add(userPermission);
-//		}
-//		return permissionsList;
-//	}
-
-	public void addPermission(PermissionType permTypes) {
-		this.permTypes.add(permTypes);
+	public Boolean getPublic() {
+		return publik;
 	}
 
-	@Override
-	public int hashCode() {
-		StringBuilder builder = new StringBuilder();
-		if (user != null) {
-			builder.append(user.hashCode());
+	public void setPublic(boolean publik) {
+		this.publik = publik;
+	}
+
+
+	public Boolean getPublik() {
+		return publik;
+	}
+
+	public void setPublik(Boolean publik) {
+		this.publik = publik;
+	}
+
+	public List<Owner> getOwners() {
+		return owners;
+	}
+
+	public void setOwners(List<Owner> owners) {
+		this.owners = owners;
+	}
+
+	public List<PermissionType> getAllow() {
+		return allow;
+	}
+
+	public void setAllow(List<PermissionType> allow) {
+		this.allow = allow;
+	}
+
+	public List<PermissionType> getDeny() {
+		return deny;
+	}
+
+	public void setDeny(List<PermissionType> deny) {
+		this.deny = deny;
+	}
+
+	public boolean refers(String username) {
+		if (Boolean.TRUE.equals(publik)) {
+			return true;
 		}
-		if (group != null) {
-			builder.append(group.hashCode());
-		}
-		builder.append(Boolean.hashCode(allPerm));
-		builder.append(permTypes.toString().hashCode());
-		return builder.toString().hashCode();
-	}
-
-	@Override
-	public boolean equals(Object other) {
-		if (other instanceof Permission) {
-			Permission op = (Permission) other;
-			if (this.allPerm == op.allPerm)
-				if (StringUtils.hasText(user) && this.user.equals(op.user) || user == null && op.user == null)
-					if (StringUtils.hasText(group) && this.group.equals(op.group)
-							|| group == null && op.group == null) {
-						for (PermissionType p : this.permTypes) {
-							if (!op.permTypes.contains(p)) {
-								return false;
-							}
-						}
+		if (owners!=null) {
+			for (Owner owner2: owners) {
+				if (owner2!=null && owner2.getId()!=null) {
+					if (Owner.OWNER_TYPE_USER.equals(owner2.getType()) && owner2.getId().equals(username)) {
 						return true;
 					}
+				}
+			}
 		}
 		return false;
 	}
 
-//	public boolean allowsAccess(Owner owner, PermissionType op) {
-//		String allowedUser = getAllowedUser();
-//		if (allowedUser.equals("@")) {
-//			return (op.equals(PermissionType.ANY)) ? true : permTypes.contains(op);
-//		}
-//		if (allowedUser.charAt(0) == '@') {
-//			if (ownerBelongsToGroup(owner, allowedUser)) {
-//				return (op.equals(PermissionType.ANY)) ? true : permTypes.contains(op);
-//			}
-//		} else if (allowedUser.equals(owner.getUsername())) {
-//			return (op.equals(PermissionType.ANY)) ? true : permTypes.contains(op);
-//
-//		}
-//		return false;
-//	}
-//
-//	private boolean ownerBelongsToGroup(Owner owner, String groupName) {
-//		return false;
-//	}
+	public boolean has(PermissionType type) {
+		boolean found = false;
+		if (allow!=null) {
+			for (PermissionType type2: allow) {
+				if (type2.includes(type)) {
+					found = true;
+					break;
+				}
+			}
+		}
+		if (deny!=null) {
+			for (PermissionType type2: allow) {
+				if (type2.includes(type)) {
+					return false;
+				}
+			}			
+		}
+		return found;
+	}
+		
+	public boolean isAllowed(String username, PermissionType type) {
+		if (!refers(username)) {
+			return false;
+		}
+		if (Boolean.TRUE.equals(publik)) {
+			return true;
+		}
+		return has(type);
+	}
+
+
+	public void addOwner(Owner owner) {
+		if (this.owners==null) {
+			this.owners = new ArrayList<>();
+		}
+		this.owners.add(owner);
+	}
+
+	public void addAllow(PermissionType type) {
+		if (this.allow==null) {
+			this.allow = new ArrayList<>();
+		}
+		this.allow.add(type);
+	}
+
+	public void addDeny(PermissionType type) {
+		if (this.deny==null) {
+			this.deny = new ArrayList<>();
+		}
+		this.deny.add(type);
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		if (allow!=null) {
+			for (PermissionType type: allow) {
+				if (sb.length()>0) {
+					sb.append(" ");
+				}
+				sb.append("+");
+				sb.append(type);	
+			}			
+		}
+		if (deny!=null) {
+			for (PermissionType type: allow) {
+				sb.append("-");
+				sb.append(type);	
+			}
+		}
+		if (owners!=null) {
+			if (sb.length()>0) {
+				sb.append(" ");
+			}
+			sb.append("#");
+			for (Owner owner: owners) {
+				sb.append(owner.serialize());
+			}
+		}
+		return sb.toString();
+	}
+
+	public boolean valid() {
+		return true;
+	}
+	
+	public static List<Permission> filterValid(List<Permission> permissions) {
+		if (permissions==null) {
+			return null;
+		}
+		List<Permission> permissions2 = new ArrayList<>();
+		for (Permission permission: permissions) {
+			if (permission!=null && permission.valid()) {
+				permissions2.add(permission);
+			}
+		}
+		return permissions2;
+	}
+
+
+	public static List<Owner> getOwners(List<Permission> permissions) {
+		if (permissions==null) {
+			return null;
+		}
+		List<Owner> owners = new ArrayList<>();
+		for (Permission permission: permissions) {
+			if (permission!=null && permission.getOwners()!=null) {				
+				owners.addAll(permission.getOwners());
+			}
+		}
+		return owners;
+	}
+
+	public static boolean isPublic(List<Permission> permissions) {
+		if (permissions!=null) {
+			for (Permission permission : permissions) {
+				if (Boolean.TRUE.equals(permission.getPublic())) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	public static int count(List<Permission> permissions, PermissionType type) {
+		int n = 0;
+		if (permissions!=null) {
+			for (Permission permission: permissions) {
+				if (permission!=null && permission.has(type)) {
+					if (permission.owners!=null) {
+						n += permission.owners.size();
+					}
+				}
+			}			
+		}
+		return n;
+	}
 
 }

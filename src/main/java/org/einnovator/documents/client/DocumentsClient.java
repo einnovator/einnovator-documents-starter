@@ -2,6 +2,7 @@ package org.einnovator.documents.client;
 
 import static org.einnovator.util.UriUtils.appendFormattedQueryParameters;
 import static org.einnovator.util.UriUtils.appendQueryParameter;
+import static org.einnovator.util.UriUtils.appendQueryParameters;
 import static org.einnovator.util.UriUtils.makeURI;
 
 import java.io.ByteArrayInputStream;
@@ -18,6 +19,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -36,8 +38,8 @@ import org.einnovator.documents.client.config.DocumentsConfiguration;
 import org.einnovator.documents.client.config.DocumentsEndpoints;
 import org.einnovator.documents.client.model.Document;
 import org.einnovator.documents.client.model.Permission;
-import org.einnovator.documents.client.model.Template;
 import org.einnovator.documents.client.modelx.DocumentFilter;
+import org.einnovator.documents.client.modelx.DocumentOptions;
 import org.einnovator.documents.client.modelx.TemplateFilter;
 
 /**
@@ -74,108 +76,19 @@ public class DocumentsClient {
 		this.restTemplate = restTemplate;
 	}
 
-	/**
-	 * Method to upload document to store.
-	 * 
-	 * Return the URI for the uploaded document.
-	 * 
-	 * @param document
-	 *            a document to be uploaded
-	 * @param username
-	 *            a string containing the user id (email)
-	 * @return URI the direct URI to the document uploaded
-	 */
-	public URI upload(Document document, String username) {
-		return upload("", document, username, false);
-	}
 
-	/**
-	 * Method to upload document to store.
-	 * 
-	 * Return the URI for the uploaded document.
-	 * 
-	 * @param document
-	 *            a document to be uploaded
-	 * @param username
-	 *            a string containing the user id (email)
-	 * @return URI the direct URI to the document uploaded
-	 */
-	public URI upload(Document document) {
-		return upload("", document, false);
-	}
-
-	/**
-	 * Method to upload document to store.
-	 * 
-	 * Return the URI for the uploaded document.
-	 * 
-	 * @param document
-	 *            a document to be uploaded
-	 * @param username
-	 *            a string containing the user id (email)
-	 * @param publicLink
-	 *            a boolean that if set TRUE will make the document public
-	 * @return URI the direct URI to the document uploaded
-	 */
-	public URI upload(Document document, String username, boolean publicLink) {
-		return upload("", document, username, publicLink);
-	}
-
-	/**
-	 * Method to upload document to store.
-	 * 
-	 * Return the URI for the uploaded document.
-	 * 
-	 * @param document
-	 *            a document to be uploaded
-	 * @return URI the direct URI to the document uploaded
-	 */
-	public URI upload(Document document, boolean publicLink) {
-		return upload("", document, publicLink);
-	}
-
-	/**
-	 * Method to upload document to store.
-	 * 
-	 * Return the URI for the uploaded document.
-	 * 
-	 * @param document
-	 *            a document to be uploaded
-	 * @param publicLink
-	 *            a boolean that if set TRUE will make the document public
-	 * @return URI the direct URI to the document uploaded
-	 */
-	public URI upload(String location, Document document, boolean publicLink) {
-		return upload(location, document, null, publicLink);
-
-	}
-
-	/**
-	 * Method to upload document to store.
-	 * 
-	 * Return the URI for the uploaded document.
-	 * 
-	 * @param document
-	 *            a document to be uploaded
-	 * @param publicLink
-	 *            a boolean that if set TRUE will make the document public
-	 * @return URI the direct URI to the document uploaded
-	 */
-	public URI upload(String location, Document document, String username, boolean publicLink) {
+	public URI write(Document document, DocumentOptions options) {
 		try {
-			URI uri = makeURI(DocumentsEndpoints.upload(location, config));
-			if (StringUtils.hasText(username) && !(uri.getQuery() != null && uri.getQuery().contains("username"))) {
-				uri = appendQueryParameter(uri, "username", username);
-			}
-			if (publicLink) {
-				uri = appendQueryParameter(uri, "makePublic", publicLink);
-				document.getAttributes().put("public", "TRUE");
+			String path = document.getPath();
+			URI uri = makeURI(DocumentsEndpoints.upload(path, config));
+			if (options!=null) {	
+				uri = appendQueryParameters(uri, options);
 			}
 
 			LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
 			HttpHeaders headers = new HttpHeaders();
 
-			String filename = StringUtils.hasText(document.getName()) ? document.getName() : document.getPath();
+			String filename = StringUtils.hasText(document.getName()) ? document.getName() : new File(path).getName();
 
 			if (document.getInputStream() == null && document.getContent() != null) {
 				document.setInputStream(new ByteArrayInputStream(document.getContent()));
@@ -193,81 +106,8 @@ public class DocumentsClient {
 				fileHeaders.setContentType(mediaType);
 				fileHeaders.setContentLength(document.getInputStream().available());
 				fileHeaders.setContentDispositionFormData("file", filename);
-				HttpEntity<InputStreamResource> entity = new HttpEntity<>(
-						new InputStreamResource(document.getInputStream()), fileHeaders);
+				HttpEntity<InputStreamResource> entity = new HttpEntity<>(new InputStreamResource(document.getInputStream()), fileHeaders);
 				map.add("file", entity);
-				// map.add("file", new UrlResource(document.getPath()));
-			}
-
-			List<Document> attachments = document.getAttachments();
-			for (int i = 0; i < attachments.size(); i++) {
-				if (attachments.get(i).getInputStream() != null) {
-					HttpHeaders fileHeaders = new HttpHeaders();
-					fileHeaders.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-					fileHeaders.setContentLength(attachments.get(i).getInputStream().available());
-					fileHeaders.setContentDispositionFormData("attachment[]", attachments.get(i).getName());
-					HttpEntity<InputStreamResource> entity = new HttpEntity<>(
-							new InputStreamResource(attachments.get(i).getInputStream()), fileHeaders);
-					map.add("attachment[" + i + "]", entity);
-					// map.add("file", new UrlResource(document.getPath()));
-				}
-			}
-
-			if (document != null) {
-				map.add("document", createSerializableDocument(document));
-			}
-
-			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-
-			HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<>(map, headers);
-			URI response = restTemplate.postForLocation(uri, requestEntity);
-			return response;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-
-	public URI upload(String location, Document document, String username, boolean publicLink, boolean updateMeta) {
-		try {
-			URI uri = makeURI(DocumentsEndpoints.upload(location, config));
-			if (StringUtils.hasText(username) && !(uri.getQuery() != null && uri.getQuery().contains("username"))) {
-				uri = appendQueryParameter(uri, "username", username);
-			}
-			if (publicLink) {
-				uri = appendQueryParameter(uri, "makePublic", publicLink);
-				document.getAttributes().put("public", "TRUE");
-			}
-			if (updateMeta) {
-				uri = appendQueryParameter(uri, "updateMeta", updateMeta);
-			}
-
-			LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
-			HttpHeaders headers = new HttpHeaders();
-
-			String filename = StringUtils.hasText(document.getName()) ? document.getName()
-					: new File(location).getName();
-
-			if (document.getInputStream() == null && document.getContent() != null) {
-				document.setInputStream(new ByteArrayInputStream(document.getContent()));
-			}
-			if (document.getInputStream() != null) {
-				HttpHeaders fileHeaders = new HttpHeaders();
-				String contentType = document.getContentType();
-				MediaType mediaType = null;
-				if (StringUtils.hasText(contentType)) {
-					mediaType = MediaType.parseMediaType(contentType);
-				}
-				if (mediaType == null) {
-					mediaType = MediaType.APPLICATION_OCTET_STREAM;
-				}
-				fileHeaders.setContentType(mediaType);
-				fileHeaders.setContentLength(document.getInputStream().available());
-				fileHeaders.setContentDispositionFormData("file", filename);
-				HttpEntity<InputStreamResource> entity = new HttpEntity<>(
-						new InputStreamResource(document.getInputStream()), fileHeaders);
-				map.add("file", entity);
-				// map.add("file", new UrlResource(document.getPath()));
 			}
 
 			List<Document> attachments = document.getAttachments();
@@ -284,12 +124,11 @@ public class DocumentsClient {
 
 					HttpEntity<InputStreamResource> entity = new HttpEntity<>(new InputStreamResource(in), fileHeaders);
 					map.add("attachment[" + i + "]", entity);
-					// map.add("file", new UrlResource(document.getPath()));
 				}
 			}
 
 			if (document != null) {
-				map.add("document", createSerializableDocument(document));
+				map.add("document", serialize(document));
 			}
 
 			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
@@ -303,12 +142,11 @@ public class DocumentsClient {
 		}
 	}
 
-	private Document createSerializableDocument(Document document) {
-		Document copy = new Document();
-		copy.setAdditionalInfo(document.getAdditionalInfo());
+	private Document serialize(Document document) {
+		Document copy = new Document(document);
 		List<Document> attachmentsCopy = new ArrayList<Document>();
 		for (Document attachment : document.getAttachments()) {
-			attachmentsCopy.add(createSerializableDocument(attachment));
+			attachmentsCopy.add(serialize(attachment));
 		}
 		copy.setAttachments(attachmentsCopy);
 		copy.setAttributes(document.getAttributes());
@@ -317,43 +155,6 @@ public class DocumentsClient {
 		copy.setPermissions(document.getPermissions());
 		copy.setCategory(document.getCategory());
 		return copy;
-	}
-
-	public Document meta(String path, String username) {
-		return download(path, username, false);
-	}
-
-	public Document meta(URI uri, String username) {
-		return download(uri, username, false);
-	}
-
-	public Document meta(String path) {
-		return download(path, null, false);
-	}
-
-	public Document meta(URI uri) {
-		return download(uri, null, false);
-	}
-
-	public Document download(String path) {
-		return download(path, null, true);
-	}
-
-	public Document download(String path, Principal principal) {
-		return download(path, getUsername(principal), true);
-	}
-
-	public Document download(String path, String username, boolean content) {
-		URI uri = makeURI(DocumentsEndpoints.download(path, config));
-		return download(uri, username, content);
-	}
-
-	public Document download(URI uri, boolean content) {
-		return download(uri, null, content);
-	}
-
-	public Document download(String path, boolean content) {
-		return download(path, null, content);
 	}
 
 	public Document download(URI uri, String username, boolean content) {
@@ -430,52 +231,26 @@ public class DocumentsClient {
 		return null;
 	}
 
-	public List<Document> list(String path) {
-		return list(path, null, null);
-	}
-
-	public List<Document> list(String path, String username) {
-		return list(path, username, null);
-	}
-
-	public List<Document> list(String path, DocumentFilter filter) {
-		return list(path, null, filter);
-	}
-
-	public List<Document> list(String path, String username, DocumentFilter filter) {
+	public List<Document> list(String path, DocumentFilter filter, Pageable pageable) {
 		URI uri = makeURI(DocumentsEndpoints.list(path, config));
-		if (StringUtils.hasText(username) && !(uri.getQuery() != null && uri.getQuery().contains("username"))) {
-			uri = appendQueryParameter(uri, "username", username);
-		}
-		if (filter != null) {
-			Map<String, Object> params = new LinkedHashMap<>();
-			params.putAll(MappingUtils.toMapFormatted(filter));
-			uri = appendFormattedQueryParameters(uri, params);
-		}
+		uri = appendQueryParameters(uri, filter);
+		uri = appendQueryParameters(uri, pageable);
 		RequestEntity<Void> request = RequestEntity.get(uri).accept(MediaType.APPLICATION_JSON).build();
 		ResponseEntity<Document[]> response = exchange(request, Document[].class);
 		if (response.getStatusCode() == HttpStatus.OK) {
-			Document[] respObj = response.getBody();
-			return Arrays.asList(respObj);
+			Document[] documents = response.getBody();
+			return Arrays.asList(documents);
 		}
 		return null;
 	}
 
-	public void delete(String path, boolean force/* , boolean deleteOriginal */) {
-		delete(path, null, force);
-	}
-
-	public void delete(String path, String username, boolean force/* , boolean deleteOriginal */) {
+	public void delete(String path, DocumentOptions options) {
 		URI uri = makeURI(DocumentsEndpoints.delete(path, config));
-		delete(uri, username, force);
+		delete(uri, options);
 	}
 
-	public void delete(URI uri, String username, boolean force/* , boolean deleteOriginal */) {
-		if (StringUtils.hasText(username) && !(uri.getQuery() != null && uri.getQuery().contains("username"))) {
-			uri = appendQueryParameter(uri, "username", username);
-		}
-		uri = appendQueryParameter(uri, "force", force);
-		// uri = appendQueryParameter(uri, "deleteOriginal", deleteOriginal);
+	public void delete(URI uri, DocumentOptions options) {		
+		uri = appendQueryParameters(uri, options);
 		restTemplate.delete(uri);
 	}
 
@@ -583,48 +358,6 @@ public class DocumentsClient {
 		return move(path, newLocation, null);
 	}
 
-	public List<Template> listTemplates(TemplateFilter filter) {
-		return listTemplates(null, filter);
-	}
-
-	public List<Template> listTemplates(String username, TemplateFilter filter) {
-		URI uri = makeURI(DocumentsEndpoints.templates(config));
-		if (filter != null) {
-			Map<String, Object> map = MappingUtils.toMap(filter);
-			uri = appendFormattedQueryParameters(uri, map);
-		}
-		if (StringUtils.hasText(username) && !(uri.getQuery() != null && uri.getQuery().contains("username"))) {
-			uri = appendQueryParameter(uri, "username", username);
-		}
-
-		RequestEntity<Void> request = RequestEntity.get(uri).accept(MediaType.APPLICATION_JSON).build();
-		ResponseEntity<Template[]> response = exchange(request, Template[].class);
-		if (response.getStatusCode() == HttpStatus.OK) {
-			Template[] respObj = response.getBody();
-			return Arrays.asList(respObj);
-		}
-		return null;
-	}
-
-	public Template getTemplate(String id) {
-		return getTemplate(null, id);
-	}
-
-	public Template getTemplate(String username, String id) {
-		URI uri = makeURI(DocumentsEndpoints.template(id, config));
-
-		if (StringUtils.hasText(username) && !(uri.getQuery() != null && uri.getQuery().contains("username"))) {
-			uri = appendQueryParameter(uri, "username", username);
-		}
-
-		RequestEntity<Void> request = RequestEntity.get(uri).accept(MediaType.APPLICATION_JSON).build();
-		ResponseEntity<Template> response = exchange(request, Template.class);
-		if (response.getStatusCode() == HttpStatus.OK) {
-			Template respObj = response.getBody();
-			return respObj;
-		}
-		return null;
-	}
 
 	protected <T> ResponseEntity<T> exchange(RequestEntity<?> request, Class<T> responseType)
 			throws RestClientException {

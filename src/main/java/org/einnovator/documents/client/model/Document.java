@@ -4,22 +4,22 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.text.DateFormat;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.einnovator.util.model.ObjectBase;
+import org.einnovator.util.model.ToStringCreator;
 import org.springframework.util.StreamUtils;
-import org.springframework.util.StringUtils;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class Document {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown=true)
+public class Document extends ObjectBase {
 
 	public static final String CACHE_CONTROL = "Cache-Control";
 	public static final String CONTENT_DISPOSITION = "Content-Disposition";
@@ -36,26 +36,15 @@ public class Document {
 	public static final String CONNECTION = "Connection";
 	private static final String ATTRIBUTE_AUTHENTICATION_REQUIRED = "Authentication";
 	
-	public static final String ATTRIBUTE_CATEGORY = "category";
-	public static final String ATTRIBUTE_CATEGORY_OTHER = "otherCategory";
-	public static final String ATTRIBUTE_SUBJECT = "subject";
-	public static final String ATTRIBUTE_TEMPLATE = "template";
-	public static final String ATTRIBUTE_ICON = "icon";
-	public static final String ATTRIBUTE_IMG = "img";
-	public static final String ATTRIBUTE_ORGANIZATION = "organization";
-	public static final String ATTRIBUTE_PRODUCT_NAME = "product name";
-	public static final String ATTRIBUTE_DESCRIPTION = "description";
-	public static final String ATTRIBUTE_INFO = "additional info";
-	public static final String ATTRIBUTE_OWNER = "owner";
-	public static final String ATTRIBUTE_ATTACHMENTS = "attachments";
-	public static final String ATTRIBUTE_REFERENCE = "reference";
-	public static final String ATTRIBUTE_PERMISSIONS = "permissions";
-	public static final String ATTRIBUTE_TAGS = "document tags";
 	public static final String ATTRIBUTE_UUID = "uuid";
 	public static final String ATTRIBUTE_CREATION_DATE = "creation_date";
 
 
+	private String uri;
+
 	private String path;
+
+	private String name;
 
 	private Owner owner;
 
@@ -65,44 +54,34 @@ public class Document {
 
 	private InputStream inputStream;
 
-	private String name;
+	private Boolean folder;
 
-	private boolean folder;
+	private Boolean hidden;
 
 	private List<Permission> permissions;
-
-	private String description;
-
-	private String additionalInfo;
-
-	private String uri;
-
-	private String organization;
 
 	private Map<String, String> attributes = new LinkedHashMap<>();
 
 	private List<Document> attachments = new ArrayList<>();
 
-	private SubjectType subject;
+	private List<String> tags = new ArrayList<>();
 
-	private DocumentCategory category;
+	private String category;
 
-	private String otherCategory;
+	private String category2;
+
+	private String description;
 
 	private String template;
 
-	private List<String> tags = new ArrayList<>();
-
-	private Boolean hidden;
-
 	private String icon;
 
-	private String imgUri;
+	private String img;
 
 	public Document() {
 	}
 
-	public Document(String volume, String path, Owner owner, Map<String, Object> meta, Map<String, String> attributes) {
+	public Document(String path, Owner owner, Map<String, Object> meta, Map<String, String> attributes) {
 		super();
 		this.path = path;
 		this.owner = owner;
@@ -114,35 +93,26 @@ public class Document {
 		}
 	}
 
-	public Document(String volume, String path, Owner owner, byte[] content, Map<String, Object> meta,
-			Map<String, String> attributes) {
-		this(volume, path, owner, meta, attributes);
+	public Document(String path, Owner owner, byte[] content, Map<String, Object> meta, Map<String, String> attributes) {
+		this(path, owner, meta, attributes);
 		this.content = content;
 		setOrUpdateSize(false);
 	}
 
-	public Document(String volume, String path, Owner owner, InputStream inputStream, Map<String, Object> meta,
-			Map<String, String> attributes) {
-		this(volume, path, owner, meta, attributes);
+	public Document(String path, Owner owner, InputStream inputStream, Map<String, Object> meta, Map<String, String> attributes) {
+		this(path, owner, meta, attributes);
 		this.inputStream = inputStream;
 	}
 
-	public Document(String volume, String path, Owner owner, long size, InputStream inputStream,
-			Map<String, Object> meta, Map<String, String> attributes) {
-		this(volume, path, owner, inputStream, meta, attributes);
+	public Document(String path, Owner owner, long size, InputStream inputStream, Map<String, Object> meta, Map<String, String> attributes) {
+		this(path, owner, inputStream, meta, attributes);
 		setContentLength(size);
 	}
 
 	public Document(Document document) {
-		this.folder = document.isFolder();
-		this.name = document.getName();
-		this.path = document.getPath();
+		super(document);
 		this.meta = document.getMeta() != null ? new LinkedHashMap<>(document.getMeta()) : null;
 		this.attributes = document.getAttributes() != null ? new LinkedHashMap<>(document.getAttributes()) : null;
-		this.owner = document.getOwner();
-		this.permissions = document.getPermissions();
-		this.content = document.getContent();
-		this.inputStream = document.getInputStream();
 	}
 
 	public String getPath() {
@@ -192,36 +162,58 @@ public class Document {
 	public void setName(String name) {
 		this.name = name;
 	}
-
-	public SubjectType getSubject() {
-		return subject;
+	/**
+	 * Get the value of property {@code folder}.
+	 *
+	 * @return the folder
+	 */
+	public Boolean getFolder() {
+		return folder;
 	}
 
-	public void setSubject(SubjectType subject) {
-		this.subject = subject;
+	/**
+	 * Set the value of property {@code folder}.
+	 *
+	 * @param folder the folder to set
+	 */
+	public void setFolder(Boolean folder) {
+		this.folder = folder;
 	}
 
-	public DocumentCategory getCategory() {
+	/**
+	 * Get the value of property {@code category}.
+	 *
+	 * @return the category
+	 */
+	public String getCategory() {
 		return category;
 	}
 
-	public void setCategory(DocumentCategory category) {
+	/**
+	 * Set the value of property {@code category}.
+	 *
+	 * @param category the category to set
+	 */
+	public void setCategory(String category) {
 		this.category = category;
 	}
 
-	public String getCategoryAsString() {
-		if (category!=null) {
-			return category.toString();
-		}
-		return getAttribute(ATTRIBUTE_CATEGORY);
+	/**
+	 * Get the value of property {@code category2}.
+	 *
+	 * @return the category2
+	 */
+	public String getCategory2() {
+		return category2;
 	}
 
-	public String getOtherCategory() {
-		return otherCategory;
-	}
-
-	public void setOtherCategory(String otherCategory) {
-		this.otherCategory = otherCategory;
+	/**
+	 * Set the value of property {@code category2}.
+	 *
+	 * @param category2 the category2 to set
+	 */
+	public void setCategory2(String category2) {
+		this.category2 = category2;
 	}
 
 	public boolean isFolder() {
@@ -238,14 +230,6 @@ public class Document {
 
 	public void setDescription(String description) {
 		this.description = description;
-	}
-
-	public String getAdditionalInfo() {
-		return additionalInfo;
-	}
-
-	public void setAdditionalInfo(String additionalInfo) {
-		this.additionalInfo = additionalInfo;
 	}
 
 	public Map<String, String> getAttributes() {
@@ -329,11 +313,11 @@ public class Document {
 		this.template = template;
 	}
 
-	public String getUri() {
+	public String get() {
 		return uri;
 	}
 
-	public void setUri(String uri) {
+	public void set(String uri) {
 		this.uri = uri;
 	}
 
@@ -382,12 +366,12 @@ public class Document {
 		this.icon = icon;
 	}
 
-	public String getImgUri() {
-		return imgUri;
+	public String getImg() {
+		return img;
 	}
 
-	public void setImgUri(String imgUri) {
-		this.imgUri = imgUri;
+	public void setImg(String img) {
+		this.img = img;
 	}
 
 	public List<String> getTags() {
@@ -405,35 +389,6 @@ public class Document {
 	public void setHidden(Boolean hidden) {
 		this.hidden = hidden;
 	}
-
-	public String getOrganization() {
-		return organization;
-	}
-
-	public void setOrganization(String organization) {
-		this.organization = organization;
-	}
-
-	@Override
-	public String toString() {
-		return this.getClass().getSimpleName() + " [" + (name != null ? "name=" + name + ", " : "")
-				+ (path != null ? "path=" + path + ", " : "") + (uri != null ? "uri=" + uri + ", " : "")
-				+ (owner != null ? "owner=" + owner + ", " : "")
-				+ (content != null ? ", content=#" + content.length : "")
-				+ (inputStream != null ? "inputStream=" + inputStream + ", " : "") + "folder=" + folder + ", hidden="
-				+ hidden + ", " + (subject != null ? "subject=" + subject + ", " : "")
-				+ (icon != null ? "icon=" + icon + ", " : "") + (meta != null ? "meta=" + meta + ", " : "")
-				+ (template != null ? "template=" + template : "")
-				+ (permissions != null ? "permissions=" + permissions + ", " : "")
-				+ (tags != null ? "tags=" + tags + ", " : "") + (category != null ? "category=" + category + ", " : "")
-				+ (otherCategory != null ? "otherCategory=" + otherCategory + ", " : "")
-				+ (description != null ? "description=" + description + ", " : "")
-				+ (additionalInfo != null ? "additionalInfo=" + additionalInfo + ", " : "") + "writePermission="
-				+ (attributes != null ? "attributes=" + attributes + ", " : "")
-				+ (attachments != null ? "|attachments|=" + attachments.size() + ", " : "")
-				+ (imgUri != null ? "imgUri=" + imgUri + ", " : "") + "]";
-	}
-
 	public void setPermissions(List<Permission> permissions) {
 		this.permissions = permissions;
 	}
@@ -503,25 +458,6 @@ public class Document {
 
 	}
 
-	@JsonIgnore
-	public String getCategoryDisplayName() {
-		if (category != null) {
-			if (category.isOther() && StringUtils.hasText(otherCategory)) {
-				return otherCategory;
-			}
-			return category.getDisplayName();
-		} else {
-			if (StringUtils.hasText(otherCategory)) {
-				return otherCategory;
-			}
-		}
-		return null;
-	}
-
-	public String getSubjectDisplayName() {
-		return subject != null ? subject.getDisplayName() : null;
-	}
-
 	private void setOrUpdateSize(boolean force) {
 		if (content != null && (force || !meta.containsKey(CONTENT_LENGTH))) {
 			meta.put(CONTENT_LENGTH, content.length);
@@ -546,6 +482,32 @@ public class Document {
 		String[] ss = path.split("/");
 		return ss.length > 0 ? ss[ss.length - 1] : null;
 	}
+
+
+	/* (non-Javadoc)
+	 * @see org.einnovator.util.model.ObjectBase#toString0(org.einnovator.util.model.ToStringCreator)
+	 */
+	@Override
+	public ToStringCreator toString0(ToStringCreator creator) {
+		return creator
+			.append("name", name)
+			.append("path", path)
+			.append("#content", content != null ? content.length : null)
+			.append("inputStream", inputStream)
+			.append("folder", folder)
+			.append("hidden", hidden)
+			.append("template", template)
+			.append("permissions", permissions)
+			.append("tags", tags)
+			.append("category", category)
+			.append("category2", category2)
+			.append("description", description)
+			.append("attributes", attributes)
+			.append("#attachments", attachments!=null ? attachments.size() : null)
+			.append("icon", icon)
+			.append("img", img);
+	}
+
 
 	
 }

@@ -9,14 +9,15 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.PayloadApplicationEvent;
+import org.springframework.context.event.EventListener;
 import org.einnovator.documents.client.DocumentsClient;
 import org.einnovator.documents.client.model.Document;
 import org.einnovator.documents.client.model.Permission;
-import org.einnovator.documents.client.model.Template;
 import org.einnovator.documents.client.modelx.DocumentFilter;
-import org.einnovator.documents.client.modelx.TemplateFilter;
 
-public class DocumentManagerImpl implements DocumentManager {
+public class DocumentManagerImpl extends ManagerBase implements DocumentManager {
 
 	public static final String CACHE_DOCUMENT = "Document";
 	public static final String CACHE_FOLDER = "Folder";
@@ -73,8 +74,7 @@ public class DocumentManagerImpl implements DocumentManager {
 			return null;
 		}
 	}
-
-
+	
 	@Override
 	public URI upload(Document document, boolean publicLink) {
 		try {
@@ -85,8 +85,7 @@ public class DocumentManagerImpl implements DocumentManager {
 			return null;
 		}
 	}
-
-
+	
 	@Override
 	public URI upload(String location, Document document, boolean publicLink) {
 		try {
@@ -97,29 +96,20 @@ public class DocumentManagerImpl implements DocumentManager {
 			return null;
 		}
 	}
-
-
-	@Override
-	public URI upload(String location, Document document, String username, boolean publicLink) {
+	
+	public URI upload(String location, Document document, String username, boolean publicLink, boolean publicShare, boolean updateMeta) {
 		try {
-			return client.upload(location, document, username, publicLink);
-		} catch (RuntimeException e) {
-			logger.error("upload:" + e + " " + location + " " + document + " " + username + " " + publicLink);
-			e.printStackTrace();
-			return null;
-		}
-	}
-
-
-	@Override
-	public URI upload(String location, Document document, String username, boolean publicLink, boolean updateMeta) {
-		try {
-			return client.upload(location, document, username, publicLink, updateMeta);
+			return client.upload(location, document, username, publicLink, publicShare, updateMeta);
 		} catch (RuntimeException e) {
 			logger.error("upload:" + e + " " + location + " " + document + " " + username + " " + publicLink + " " + updateMeta);
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	@Override
+	public URI upload(String location, Document document, String username, boolean publicLink, boolean updateMeta) {
+		return client.upload(location, document, username, publicLink, publicLink, updateMeta);
 	}
 
 
@@ -512,84 +502,16 @@ public class DocumentManagerImpl implements DocumentManager {
 	}
 
 
-	@Override
-	public List<Template> listTemplates(TemplateFilter filter) {
-		try {
-			return client.listTemplates(filter);
-		} catch (RuntimeException e) {
-			logger.error("listTemplates:" + e + " " + filter);
-			e.printStackTrace();
-			return null;
-		}
-	}
-
-
-	@Override
-	public List<Template> listTemplates(String username, TemplateFilter filter) {
-		try {
-			return client.listTemplates(username, filter);
-		} catch (RuntimeException e) {
-			logger.error("listTemplates:" + e + " " + username + " " + filter);
-			e.printStackTrace();
-			return null;
-		}
-	}
-
-
-	@Override
-	public Template getTemplate(String id) {
-		try {
-			return client.getTemplate(id);
-		} catch (RuntimeException e) {
-			logger.error("getTemplate:" + e + " " + id);
-			e.printStackTrace();
-			return null;
-		}
-	}
-
-
-	@Override
-	public Template getTemplate(String username, String id) {
-		try {
-			return client.getTemplate(username, id);
-		} catch (RuntimeException e) {
-			logger.error("getTemplate:" + e + " " + username + " " + id);
-			e.printStackTrace();
-			return null;
-		}
-	}
 	
 	
 	@Override
 	public void onDocumentUpdate(String path) {
-		if (path==null) {
-			return;
-		}
-		try {
-			Cache cache = cacheManager.getCache(DocumentManagerImpl.CACHE_DOCUMENT);
-			if (cache!=null) {
-				cache.evict(path);
-			}
-		} catch (RuntimeException e) {
-			e.printStackTrace();
-			logger.error("onDocumentUpdate: " + e);
-		}
+		evictCaches(path);
 	}
 
 	@Override
 	public void onFolderUpdate(String path) {
-		if (path==null) {
-			return;
-		}
-		try {
-			Cache cache = cacheManager.getCache(DocumentManagerImpl.CACHE_FOLDER);
-			if (cache!=null) {
-				cache.evict(path);
-			}
-		} catch (RuntimeException e) {
-			e.printStackTrace();
-			logger.error("onFolderUpdate: " + e);
-		}
+		evictCaches(path);
 	}
 
 
@@ -626,6 +548,40 @@ public class DocumentManagerImpl implements DocumentManager {
 	public Cache getFolderCache() {
 		Cache cache = cacheManager.getCache(CACHE_DOCUMENT);
 		return cache;
+	}
+
+	@EventListener
+	@Override
+	public void onEvent(ApplicationEvent event) {
+		if (!(event instanceof PayloadApplicationEvent)) {
+			return;
+		}
+		Document document = getNotificationSource(((PayloadApplicationEvent<?>)event).getPayload(), Document.class);
+		if (document!=null) {
+			evictCaches(document);				
+		}		
+	}
+
+	private void evictCaches(Document document) {
+		if (document==null) {
+			return;
+		}
+		evictCaches(document.getPath());
+	}
+	
+	private void evictCaches(String path) {
+		if (path==null) {
+			return;
+		}
+		Cache cache = getDocumentCache();
+		if (cache!=null) {
+			cache.evict(path);
+		}
+		Cache cache2 = getFolderCache();
+		if (cache2!=null) {
+			cache2.evict(path);
+		}
+
 	}
 
 }
