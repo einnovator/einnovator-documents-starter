@@ -1,15 +1,13 @@
 package org.einnovator.documents.client.config;
 
 import org.einnovator.util.config.ConnectionConfiguration;
+import org.einnovator.util.model.ObjectBase;
+import org.einnovator.util.model.ToStringCreator;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 @ConfigurationProperties("documents")
-public class DocumentsConfiguration {
-
-	public static final String DEFAULT_PERSONAL_PATH = "Personal Documents/";
-	
-	public static final String DEFAULT_ORGANIZATIONS_PATH = "Organization Documents/";
+public class DocumentsConfiguration extends ObjectBase {
 
 	public final static String DEFAULT_ENCODING = "UTF-8";
 
@@ -59,5 +57,14 @@ public class DocumentsConfiguration {
 		this.connection = connection;
 	}
 
-	
+	/* (non-Javadoc)
+	 * @see org.einnovator.util.model.ObjectBase#toString(org.einnovator.util.model.ToStringCreator)
+	 */
+	@Override
+	public ToStringCreator toString(ToStringCreator creator) {
+		return creator
+				.append("server", server)
+				.append("connection", connection)
+				;
+	}
 }

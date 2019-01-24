@@ -3,6 +3,7 @@ package org.einnovator.documents.client.config;
 import org.einnovator.documents.client.DocumentsClient;
 import org.einnovator.documents.client.manager.DocumentManager;
 import org.einnovator.documents.client.manager.DocumentManagerImpl;
+import org.einnovator.documents.client.web.DocumentRestController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.CacheManager;
@@ -52,4 +53,6 @@ public class DocumentsClientConfig {
 	public DocumentManager documentManager(CacheManager cacheManager) {
 		return new DocumentManagerImpl(cacheManager);
 	}
+
+
 }

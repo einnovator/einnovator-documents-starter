@@ -1,6 +1,5 @@
 package org.einnovator.documents.client;
 
-import static org.einnovator.util.UriUtils.appendFormattedQueryParameters;
 import static org.einnovator.util.UriUtils.appendQueryParameter;
 import static org.einnovator.util.UriUtils.appendQueryParameters;
 import static org.einnovator.util.UriUtils.makeURI;
@@ -9,13 +8,17 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
+import org.einnovator.documents.client.config.DocumentsConfiguration;
+import org.einnovator.documents.client.config.DocumentsEndpoints;
+import org.einnovator.documents.client.model.Document;
+import org.einnovator.documents.client.model.Permission;
+import org.einnovator.documents.client.modelx.DocumentFilter;
+import org.einnovator.documents.client.modelx.DocumentOptions;
+import org.einnovator.util.UriUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.InputStreamResource;
@@ -32,18 +35,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
 
-import org.einnovator.util.MappingUtils;
-import org.einnovator.util.UriUtils;
-import org.einnovator.documents.client.config.DocumentsConfiguration;
-import org.einnovator.documents.client.config.DocumentsEndpoints;
-import org.einnovator.documents.client.model.Document;
-import org.einnovator.documents.client.model.Permission;
-import org.einnovator.documents.client.modelx.DocumentFilter;
-import org.einnovator.documents.client.modelx.DocumentOptions;
-import org.einnovator.documents.client.modelx.TemplateFilter;
-
 /**
- * Client API for Document Gateway.
+ * Client API for Documents Service.
  *
  */
 public class DocumentsClient {
@@ -157,78 +150,67 @@ public class DocumentsClient {
 		return copy;
 	}
 
-	public Document download(URI uri, String username, boolean content) {
-		URI metaUri = makeMetaUri(uri);
-		if (StringUtils.hasText(username) && !(uri.getQuery() != null && uri.getQuery().contains("username"))) {
-			uri = appendQueryParameter(uri, "username", username);
-		}
-		if (StringUtils.hasText(username) && !(metaUri.getQuery() != null && metaUri.getQuery().contains("username"))) {
-			metaUri = appendQueryParameter(metaUri, "username", username);
-		}
-		RequestEntity<Void> request = RequestEntity.get(metaUri).accept(MediaType.APPLICATION_JSON).build();
-		ResponseEntity<Document> response = exchange(request, Document.class);
+	public Document read(String path, DocumentOptions options) {
+		URI uri = makeURI(DocumentsEndpoints.download(path, config));
+		return read(uri, options);
+	}
 
-		if (response.getStatusCode() == HttpStatus.OK) {
-			Document metaDoc = response.getBody();
-			if (content) {
-				String contentType = metaDoc != null && metaDoc.getMeta() != null
-						? (String) metaDoc.getMeta().get("Content-Type")
-						: null;
-				if (contentType == null) {
-					contentType = MediaType.ALL.toString();
+	public Document read(URI uri, DocumentOptions options) {
+		Document document = null;
+
+		if (DocumentOptions.meta(options)) {
+			URI metaUri = makeMetaUri(uri);
+			System.out.println("read meta:" + uri  + " " + metaUri);
+			UriUtils.appendQueryParameters(metaUri, options);
+			RequestEntity<Void> request = RequestEntity.get(metaUri).accept(MediaType.APPLICATION_JSON).build();
+			ResponseEntity<Document> response = exchange(request, Document.class);			
+			document = response.getBody();
+		}
+
+		if (DocumentOptions.content(options)) {
+				String contentType = document != null ? document.getContentType() : null;
+				byte[] bytes = content(uri, options, contentType);
+				if (bytes != null) {
+					if (document==null) {
+						document = new Document(uri, bytes);
+					}
+					document.setContent(bytes);
 				}
-				Document contentDoc = downloadInternal(uri, username, contentType);
-				metaDoc.setInputStream(contentDoc.getInputStream());
-				metaDoc.setContent(contentDoc.getContent());
-			}
-
-			return metaDoc;
 		}
-		return null;
-	}
-
-	private URI makeMetaUri(URI uri) {
-		return URI.create(uri.toString().replace("/_/", "/api/_meta/"));
-	}
-
-	public Document download(URI uri) {
-		return downloadInternal(uri, null, null);
-	}
-
-	public Document download(URI uri, String username, String contentType) {
-		return downloadInternal(uri, username, contentType);
-	}
-
-	public Document download(URI uri, String contentType) {
-		return downloadInternal(uri, null, contentType);
-	}
-
-	private Document downloadInternal(URI uri, String username, String contentType) {
-		Document document = new Document();
-		if (StringUtils.hasText(username) && !(uri.getQuery() != null && uri.getQuery().contains("username"))) {
-			uri = appendQueryParameter(uri, "username", username);
+		if (DocumentOptions.versions(options)) {
+			
 		}
-
-		byte[] byteContent = content(uri, username, contentType);
-		if (byteContent != null) {
-			document.setContent(byteContent);
-			document.setInputStream(new ByteArrayInputStream(byteContent));
+		
+		if (DocumentOptions.attachments(options)) {
+			
 		}
 
 		return document;
 	}
 
-	public byte[] content(URI uri, String username, String contentType) {
-		HeadersBuilder<?> builder = RequestEntity.get(uri);
-		if (StringUtils.hasText(contentType)) {
-			builder.accept(MediaType.valueOf(contentType));
+	private URI makeMetaUri(URI uri) {
+		return URI.create(uri.toString().replace("/_/", "/api/_meta/"));
+	}
+	
+	private String getPath(URI uri) {
+		String path = uri.getPath();
+		if (path.startsWith("/_/") && path.length()>="/_/".length()) {
+			path = path.substring("/_/".length()-1);
 		}
+		return path;
+	}
+
+	public byte[] content(URI uri, DocumentOptions options, String contentType) {
+		uri = UriUtils.appendQueryParameters(uri, options);
+		HeadersBuilder<?> builder = RequestEntity.get(uri);
+		if (!StringUtils.hasText(contentType)) {
+			contentType = MediaType.ALL.toString();
+		}
+		builder.accept(MediaType.valueOf(contentType));
 		RequestEntity<Void> request = builder.build();
 		ResponseEntity<byte[]> response = exchange(request, byte[].class);
-		if (response.getStatusCode() == HttpStatus.OK) {
-			return response.getBody();
-		}
-		return null;
+		System.out.println("content:" + uri + " " + response.getBody().length);
+		return response.getBody();
 	}
 
 	public List<Document> list(String path, DocumentFilter filter, Pageable pageable) {
@@ -254,113 +236,76 @@ public class DocumentsClient {
 		restTemplate.delete(uri);
 	}
 
-	public void share(String path, String username, List<Permission> permissions) {
-		URI uri = makeURI(DocumentsEndpoints.share(path, config));
-		if (StringUtils.hasText(username) && !(uri.getQuery() != null && uri.getQuery().contains("username"))) {
-			uri = appendQueryParameter(uri, "username", username);
-		}
-
-		Document document = new Document();
-		document.setPath(path);
-		document.setPermissions(permissions);
-		RequestEntity<Document> request = RequestEntity.put(uri).contentType(MediaType.APPLICATION_JSON).body(document);
-		exchange(request, Void.class);
+	public Document restore(URI uri, DocumentOptions options) {
+		return restore(getPath(uri), options);
 	}
 
-	public void share(String path, List<Permission> permissions) {
-		share(path, null, permissions);
-	}
-
-	public void shareDelete(String path, String username, List<Permission> permissions) {
-		URI uri = makeURI(DocumentsEndpoints.deleteShare(path, config));
-		if (StringUtils.hasText(username) && !(uri.getQuery() != null && uri.getQuery().contains("username"))) {
-			uri = appendQueryParameter(uri, "username", username);
-
-		}
-
-		Document document = new Document();
-		document.setPath(path);
-		document.setPermissions(permissions);
-		RequestEntity<Document> request = RequestEntity.put(uri).contentType(MediaType.APPLICATION_JSON).body(document);
-
-		exchange(request, Void.class);
-	}
-
-	public void shareDelete(String path, List<Permission> permissions) {
-		shareDelete(path, null, permissions);
-	}
-
-	public static String getUsername(Principal principal) {
-		return principal.getName();
-	}
-
-	public Document restore(String path, String username) {
+	public Document restore(String path, DocumentOptions options) {
 		URI uri = makeURI(DocumentsEndpoints.restore(path, config));
-		if (StringUtils.hasText(username) && !(uri.getQuery() != null && uri.getQuery().contains("username"))) {
-			uri = appendQueryParameter(uri, "username", username);
-		}
+		uri = appendQueryParameters(uri, options);
 		RequestEntity<Void> request = RequestEntity.get(uri).accept(MediaType.APPLICATION_JSON).build();
 		ResponseEntity<Document> response = exchange(request, Document.class);
-
-		if (response.getStatusCode() == HttpStatus.OK) {
-			return response.getBody();
-		}
-		return null;
-
+		return response.getBody();
 	}
 
-	public Document restore(String path) {
-		return restore(path, null);
-	}
-
-	public URI newFolder(String path, String username) {
+	public URI mkdir(String path, DocumentOptions options) {
 		URI uri = makeURI(DocumentsEndpoints.folder(path, config));
-		if (StringUtils.hasText(username) && !(uri.getQuery() != null && uri.getQuery().contains("username"))) {
-			uri = appendQueryParameter(uri, "username", username);
-		}
+		uri = appendQueryParameters(uri, options);
 		RequestEntity<Void> request = RequestEntity.post(uri).accept(MediaType.APPLICATION_JSON).build();
 		URI response = restTemplate.postForLocation(uri, request);
 		return response;
 	}
 
-	public URI newFolder(String path) {
-		return newFolder(path, null);
-	}
-
-	public URI copy(String path, String username) {
+	public URI copy(String path, String destPath, DocumentOptions options) {
 		URI uri = makeURI(DocumentsEndpoints.copy(path, config));
-		if (StringUtils.hasText(username) && !(uri.getQuery() != null && uri.getQuery().contains("username"))) {
-			uri = appendQueryParameter(uri, "username", username);
-		}
+		uri = appendQueryParameters(uri, options);
+		destPath = UriUtils.encode(destPath, DocumentsConfiguration.DEFAULT_ENCODING);
+		uri = appendQueryParameter(uri, "path", destPath);
+
 		RequestEntity<Void> request = RequestEntity.post(uri).accept(MediaType.APPLICATION_JSON).build();
 		URI response = restTemplate.postForLocation(uri, request);
 		return response;
 	}
 
-	public URI copy(String path) {
-		return copy(path, null);
-	}
-
-	public URI move(String path, String newLocation, String username) {
+	public URI move(String path, String destPath, DocumentOptions options) {
 		URI uri = makeURI(DocumentsEndpoints.move(path, config));
-		if (StringUtils.hasText(username) && !(uri.getQuery() != null && uri.getQuery().contains("username"))) {
-			uri = appendQueryParameter(uri, "username", username);
-		}
-		newLocation = UriUtils.encode(newLocation, DocumentsConfiguration.DEFAULT_ENCODING);
-		uri = appendQueryParameter(uri, "newLocation", newLocation);
-
+		uri = appendQueryParameters(uri, options);
+		destPath = UriUtils.encode(destPath, DocumentsConfiguration.DEFAULT_ENCODING);
+		uri = appendQueryParameter(uri, "path", destPath);
 		RequestEntity<Void> request = RequestEntity.post(uri).accept(MediaType.APPLICATION_JSON).build();
-		URI response = restTemplate.postForLocation(uri, request);
-		return response;
-	}
-
-	public URI move(String path, String newLocation) {
-		return move(path, newLocation, null);
+		return restTemplate.postForLocation(uri, request);
 	}
 
 
-	protected <T> ResponseEntity<T> exchange(RequestEntity<?> request, Class<T> responseType)
-			throws RestClientException {
+	public void share(URI uri, List<Permission> permissions, DocumentOptions options) {
+		share(getPath(uri), permissions, options);
+	}
+
+	public void share(String path, List<Permission> permissions, DocumentOptions options) {
+		URI uri = makeURI(DocumentsEndpoints.share(path, config));
+		uri = appendQueryParameters(uri, options);
+		Document document = new Document();
+		document.setPath(path);
+		document.setPermissions(permissions);
+		RequestEntity<Document> request = RequestEntity.put(uri).contentType(MediaType.APPLICATION_JSON).body(document);
+		exchange(request, Void.class);
+	}
+
+	public void unshare(URI uri, List<Permission> permissions, DocumentOptions options) {
+		share(getPath(uri), permissions, options);
+	}
+
+	public void unshare(String path, List<Permission> permissions, DocumentOptions options) {
+		URI uri = makeURI(DocumentsEndpoints.unshare(path, config));
+		Document document = new Document();
+		document.setPath(path);
+		document.setPermissions(permissions);
+		RequestEntity<Document> request = RequestEntity.put(uri).contentType(MediaType.APPLICATION_JSON).body(document);
+		exchange(request, Void.class);
+	}
+
+
+	protected <T> ResponseEntity<T> exchange(RequestEntity<?> request, Class<T> responseType) throws RestClientException {
 		return restTemplate.exchange(request, responseType);
 	}
 

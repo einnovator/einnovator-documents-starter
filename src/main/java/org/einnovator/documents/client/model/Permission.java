@@ -246,4 +246,18 @@ public class Permission {
 		return n;
 	}
 
+	/**
+	 * Make {@code Permission} list
+	 * @param read
+	 * @param sHARE_USER
+	 * @return
+	 */
+	public static List<Permission> make(PermissionType type, String... usernames) {
+		List<Permission> permissions = new ArrayList<>();
+		for (String username: usernames) {
+			permissions.add(new Permission(Owner.user(username), type));
+		}
+		return permissions;
+	}
+
 }

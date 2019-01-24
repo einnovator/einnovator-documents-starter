@@ -1,9 +1,11 @@
 package org.einnovator.documents.client.model;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -14,6 +16,7 @@ import org.einnovator.util.model.ObjectBase;
 import org.einnovator.util.model.ToStringCreator;
 import org.springframework.util.StreamUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -50,8 +53,10 @@ public class Document extends ObjectBase {
 
 	private Map<String, Object> meta = new LinkedHashMap<>();
 
+	@JsonIgnore
 	private byte[] content;
 
+	@JsonIgnore
 	private InputStream inputStream;
 
 	private Boolean folder;
@@ -113,6 +118,23 @@ public class Document extends ObjectBase {
 		super(document);
 		this.meta = document.getMeta() != null ? new LinkedHashMap<>(document.getMeta()) : null;
 		this.attributes = document.getAttributes() != null ? new LinkedHashMap<>(document.getAttributes()) : null;
+	}
+
+	/**
+	 * Create instance of {@code Document}.
+	 *
+	 * @param uri
+	 * @param bytes
+	 */
+	public Document(URI uri, byte[] bytes) {
+		setContent(bytes);
+		setContentLength(bytes!=null ? bytes.length : 0);
+		if (uri!=null) {
+			this.uri = uri.toString();			
+		}
+		if (bytes!=null) {
+			this.inputStream = new ByteArrayInputStream(bytes);			
+		}
 	}
 
 	public String getPath() {
@@ -313,11 +335,11 @@ public class Document extends ObjectBase {
 		this.template = template;
 	}
 
-	public String get() {
+	public String getUri() {
 		return uri;
 	}
 
-	public void set(String uri) {
+	public void setUri(String uri) {
 		this.uri = uri;
 	}
 
@@ -404,6 +426,7 @@ public class Document extends ObjectBase {
 		meta.put(CONTENT_TYPE, contentType);
 	}
 
+	@JsonIgnore
 	public String getContentType() {
 		if (meta == null) {
 			return null;
@@ -412,12 +435,20 @@ public class Document extends ObjectBase {
 		return contentType != null ? contentType.toString() : null;
 	}
 
-	public Boolean getAuthenticationRequired() {
-		return getAttributeAsBoolean(ATTRIBUTE_AUTHENTICATION_REQUIRED);
-	}
-
 	public void setContentLength(long contentLength) {
 		meta.put(CONTENT_LENGTH, contentLength);
+	}
+
+	@JsonIgnore
+	public long getContentLength() {
+		if (meta != null && meta.containsKey(CONTENT_LENGTH)) {
+			if (meta.get(CONTENT_LENGTH) instanceof Number) {
+				return ((Number) meta.get(CONTENT_LENGTH)).longValue();
+
+			}
+			return Long.parseLong((String) meta.get(CONTENT_LENGTH));
+		}
+		return -1;
 	}
 
 	public static class MetaBuilder {

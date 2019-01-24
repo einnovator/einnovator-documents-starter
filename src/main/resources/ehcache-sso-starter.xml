@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="http://ehcache.org/ehcache.xsd" name="CM1"
+	updateCheck="false" maxBytesLocalHeap="128M">
+
+	<diskStore path="java.io.tmpdir" />
+
+
+	<defaultCache eternal="false" overflowToDisk="false" />
+
+	<cache name="User"></cache>
+	<cache name="Group"></cache>
+	<cache name="GroupMember"></cache>
+	<cache name="GroupMember:count"></cache>
+	<cache name="Role"></cache>
+	<cache name="Invitation"></cache>
+	<cache name="Invitation:count"></cache>
+	<cache name="Invitation:stats"></cache>
+
+	<cache name="Notification"></cache>
+	<cache name="Notification:count"></cache>
+
+	<cache name="Message"></cache>
+	<cache name="Message:count"></cache>
+
+	<cache name="Organization"></cache>
+	<cache name="Connection"></cache>
+	<cache name="Connection:Comment"></cache>
+	<cache name="Connection:Tag"></cache>
+	<cache name="Product"></cache>
+
+	<cache name="Document"></cache>
+	<cache name="Folder"></cache>
+	<cache name="Template"></cache>
+
+	<cache name="AuditSpec"></cache>
+	
+	<cache name="Certification"></cache>
+
+	<cache name="Requirement"></cache>
+	
+</ehcache>

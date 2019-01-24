@@ -14,7 +14,7 @@ public class ControllerBase {
 			return false;
 		}
 		if (admin) {
-			return isAdmin(principal) || isSuperuser(principal);
+			return isAdmin(principal);
 		}
 		return true;
 	}
@@ -41,7 +41,7 @@ public class ControllerBase {
 		if (principalUser.equals(owner)) {
 			return true;
 		}
-		if (isAdmin(principal) || isSuperuser(principal)) {
+		if (isAdmin(principal)) {
 			return true;
 		}
 		return false;
@@ -59,8 +59,7 @@ public class ControllerBase {
 		return false;
 	}
 
-	protected boolean isSuperuser(Principal principal) {
-		return false;
+	public static String redirect(String uri) {
+		return "redirect:" + uri;	
 	}
-
 }

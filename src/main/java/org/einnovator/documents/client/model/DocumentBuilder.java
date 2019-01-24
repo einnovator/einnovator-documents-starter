@@ -17,6 +17,11 @@ public class DocumentBuilder {
 
 	private String name;
 	
+	private Long contentLength;
+
+	private String contentType;
+
+	private String category;
 
 	public DocumentBuilder() {
 	}
@@ -56,6 +61,23 @@ public class DocumentBuilder {
 		this.inputStream = inputStream;
 		return this;
 	}
+	
+
+	public DocumentBuilder contentLength(Long contentLength) {
+		this.contentLength = contentLength;
+		return this;
+	}
+
+	public DocumentBuilder contentLength(String contentType) {
+		this.contentType = contentType;
+		return this;
+	}
+
+	public DocumentBuilder category(String category) {
+		this.category = category;
+		return this;
+	}
+
 
 	public Document build() {
 		Document document = new Document();
@@ -65,6 +87,10 @@ public class DocumentBuilder {
 		document.setInputStream(inputStream);
 		document.setContent(content);
 		document.setOwner(owner);
+		document.setContentLength(contentLength);
+		document.setContentType(contentType);
+		document.setCategory(category);
 		return document;
+
 	}
 }

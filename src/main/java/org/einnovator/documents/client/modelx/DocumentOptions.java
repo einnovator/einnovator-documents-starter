@@ -1,8 +1,5 @@
 package org.einnovator.documents.client.modelx;
 
-import java.net.URI;
-
-import org.einnovator.documents.client.model.Document;
 import org.einnovator.util.MappingUtils;
 import org.einnovator.util.model.ObjectBase;
 import org.einnovator.util.model.ToStringCreator;
@@ -27,6 +24,8 @@ public class DocumentOptions extends ObjectBase {
 	public static final DocumentOptions WITH_VERSIONS = new DocumentOptions().content(true).meta(true).versions(true);
 
 	public static final DocumentOptions WITH_VERSIONS_AND_ATTACHEMENTS = new DocumentOptions().content(true).meta(true).versions(true).attachments(true);
+
+	public static final DocumentOptions PUBLIC = new DocumentOptions().share(true, true);
 
 	//write
 	
@@ -96,12 +95,11 @@ public class DocumentOptions extends ObjectBase {
 	protected Boolean publish;
 
 	//permission 
-	
-	protected boolean publicLink;
-	
-	protected boolean publicShare;
 
+	protected Boolean publicShare;
 
+	protected Boolean publicLink;
+	
 	public DocumentOptions() {
 	}
 
@@ -227,6 +225,52 @@ public class DocumentOptions extends ObjectBase {
 		this.publish = publish;
 	}
 
+	
+	/**
+	 * Get the value of property {@code publicLink}.
+	 *
+	 * @return the publicLink
+	 */
+	public Boolean getPublicLink() {
+		return publicLink;
+	}
+
+
+	/**
+	 * Set the value of property {@code publicLink}.
+	 *
+	 * @param publicLink the publicLink to set
+	 */
+	public void setPublicLink(Boolean publicLink) {
+		this.publicLink = publicLink;
+	}
+
+
+	/**
+	 * Get the value of property {@code publicShare}.
+	 *
+	 * @return the publicShare
+	 */
+	public Boolean getPublicShare() {
+		return publicShare;
+	}
+
+
+	/**
+	 * Set the value of property {@code publicShare}.
+	 *
+	 * @param publicShare the publicShare to set
+	 */
+	public void setPublicShare(Boolean publicShare) {
+		this.publicShare = publicShare;
+	}
+
+
+	public DocumentOptions share(boolean publicShare, boolean publicLink) {
+		this.publicShare = publicShare;
+		this.publicLink = publicLink;
+		return this;
+	}
 
 	public DocumentOptions content(Boolean content) {
 		this.content = content;
@@ -302,5 +346,26 @@ public class DocumentOptions extends ObjectBase {
 				.append("username", username)
 				;
 	}
+
 	
+	public static boolean content(DocumentOptions options)  {
+		return options==null || !Boolean.FALSE.equals(options.content);
+	}
+
+	public static boolean meta(DocumentOptions options)  {
+		return options!=null && Boolean.TRUE.equals(options.meta);
+	}
+
+	public static boolean versions(DocumentOptions options)  {
+		return options!=null && Boolean.TRUE.equals(options.versions);
+	}
+
+	public static boolean attachments(DocumentOptions options)  {
+		return options!=null && Boolean.TRUE.equals(options.attachments);
+	}
+
+	public static DocumentOptions options(DocumentOptions... options) {
+		return new DocumentOptions(options);
+	}
+
 }

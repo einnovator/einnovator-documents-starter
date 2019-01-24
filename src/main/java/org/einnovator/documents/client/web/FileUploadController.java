@@ -13,9 +13,10 @@ import javax.imageio.ImageIO;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.einnovator.documents.client.DocumentsClient;
 import org.einnovator.documents.client.config.FilesConfiguration;
+import org.einnovator.documents.client.manager.DocumentManager;
 import org.einnovator.documents.client.model.Document;
+import org.einnovator.documents.client.modelx.DocumentOptions;
 import org.einnovator.util.PathUtil;
 import org.einnovator.util.UriUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,23 +34,21 @@ public class FileUploadController extends ControllerBase {
 	private final Log logger = LogFactory.getLog(getClass());
 
 	@Autowired
-	protected DocumentsClient docClient;
+	protected DocumentManager manager;
 
 	public FileUploadController() {
 	}
 
 	@PostMapping({ "/upload", "/api/upload", "/_upload", "/api/_upload" })
-	public ResponseEntity<Void> upload(@RequestParam("file") MultipartFile file,
+	public ResponseEntity<Void> upload(@RequestParam("file") MultipartFile file, MultipartHttpServletRequest request, 
 			@RequestParam(value = "key", required = false) String key,
 			@RequestParam(value = "pwd", required = false) String folder,
 			@RequestParam(value = "filename", required = false) String filename,
 			@RequestParam(value = "unique", required = false) Boolean unique,
 			@RequestParam(value = "id", required = false) String id, Document document,
-			MultipartHttpServletRequest request, 
 			@RequestParam(required = false) Boolean crop,
-			@RequestParam(value = "username", required = false) String username,
-			Principal principal,
-			Authentication authentication) throws IOException {
+			DocumentOptions options,
+			Principal principal, Authentication authentication) throws IOException {
 
 		if (principal == null) {
 			logger.error("upload: " + HttpStatus.UNAUTHORIZED.getReasonPhrase());
@@ -98,7 +97,11 @@ public class FileUploadController extends ControllerBase {
 		URI uri = null;
 		try {
 			setupToken(principal, authentication);
-			uri = uploadResource(resourcePath, document, principal.getName(), true);
+			document.setPath(resourcePath);
+			if (options.getPublicShare()==null) {
+				options.share(true, true);				
+			}
+			uri = uploadResource(document, options);
 			if (uri == null) {
 				logger.error("upload: [UPLOAD]: " + key + " " + id + " " + name);
 				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -120,8 +123,8 @@ public class FileUploadController extends ControllerBase {
 		return ResponseEntity.created(uri).build();
 	}
 
-	protected URI uploadResource(String resourcePath, Document document, String owner, boolean publicLink) {
-		return docClient.upload(resourcePath, document, owner, true);
+	protected URI uploadResource(Document document, DocumentOptions options) {
+		return manager.write(document, options);
 	}
 
 	private File cropImage(MultipartFile file) {
@@ -244,9 +247,9 @@ public class FileUploadController extends ControllerBase {
 	protected void update(String key, String id, URI uri, Principal principal) {
 	}
 
-	protected URI moveFromTmp(String tmpUri) {
+	protected URI moveFromTmp(String tmpUri, DocumentOptions options) {
 		try {
-			return docClient.move(tmpUri, getPathFromTmpPath(tmpUri));
+			return manager.move(tmpUri, getPathFromTmpPath(tmpUri), options);
 		} catch (RuntimeException e) {
 			logger.error("moveFromTmp: " + tmpUri + " " + e);
 			return UriUtils.makeURI(tmpUri);
