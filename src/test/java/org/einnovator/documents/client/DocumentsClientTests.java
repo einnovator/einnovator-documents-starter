@@ -44,7 +44,7 @@ import static org.einnovator.documents.client.modelx.DocumentOptions.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = { DocumentsClientConfig.class, DocumentsClientTests.TestConfig.class }, webEnvironment = WebEnvironment.NONE)
-@TestPropertySource(properties = { "documents.server=http://localhost:2021", "sso.server=http://localhost:2001/auth",
+@TestPropertySource(properties = { "documents.server=http://localhost:2021", "sso.server=http://localhost:2001",
 		"spring.cache.ehcache.config:ehcache-sso-starter.xml" })
 public class DocumentsClientTests extends SsoTestHelper {
 
