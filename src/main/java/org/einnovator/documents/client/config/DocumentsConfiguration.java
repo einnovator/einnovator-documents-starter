@@ -16,8 +16,12 @@ public class DocumentsConfiguration extends ObjectBase {
 	private String server = DEFAULT_SERVER;
 	
 	@NestedConfigurationProperty
+	private FilesConfiguration files = new FilesConfiguration();
+
+	@NestedConfigurationProperty
 	private ConnectionConfiguration connection = new ConnectionConfiguration();
-	
+
+
 	public DocumentsConfiguration() {
 	}
 
@@ -40,6 +44,24 @@ public class DocumentsConfiguration extends ObjectBase {
 	}
 
 	/**
+	 * Get the value of property {@code files}.
+	 *
+	 * @return the files
+	 */
+	public FilesConfiguration getFiles() {
+		return files;
+	}
+
+	/**
+	 * Set the value of property {@code files}.
+	 *
+	 * @param files the files to set
+	 */
+	public void setFiles(FilesConfiguration files) {
+		this.files = files;
+	}
+
+	/**
 	 * Get the value of property {@code connection}.
 	 *
 	 * @return the connection
@@ -57,13 +79,12 @@ public class DocumentsConfiguration extends ObjectBase {
 		this.connection = connection;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.einnovator.util.model.ObjectBase#toString(org.einnovator.util.model.ToStringCreator)
-	 */
+	
 	@Override
 	public ToStringCreator toString(ToStringCreator creator) {
 		return creator
 				.append("server", server)
+				.append("files", files)
 				.append("connection", connection)
 				;
 	}

@@ -5,9 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.einnovator.util.model.ObjectBase;
+import org.einnovator.util.model.ToStringCreator;
 import org.springframework.util.StringUtils;
 
-public class FilesConfiguration {
+public class FilesConfiguration extends ObjectBase {
 	
 	public static final String DEFAULT_UPLOAD_FOLDER = "/.upload/";
 
@@ -127,18 +129,6 @@ public class FilesConfiguration {
 		this.useTmp = useTmp;
 	}
 
-	@Override
-	public String toString() {
-		return "FilesConfiguration [" 
-				+ (root != null ? "root=" + root + ", " : "")
-				+ (locations != null ? "locations=" + locations + ", " : "")
-				+ (exts != null ? "exts=" + exts + ", " : "")
-				+ (tmp != null ? "tmp=" + tmp + ", " : "")
-				+ ("useTmp=" + useTmp + ", ")
-				+ (useTmpFor != null ? "useTmpFor=" + useTmpFor + ", " : "")
-				+ "]";
-	}
-
 	public boolean useTmpFor(String key) {
 		if (useTmpFor!=null && !StringUtils.isEmpty(key) && Boolean.TRUE.equals(useTmpFor.get(key))) {
 			return true;
@@ -157,5 +147,18 @@ public class FilesConfiguration {
 	public void addFolder(String key, String folder) {
 		this.folders.put(key, folder);
 	}
+
+	@Override
+	public ToStringCreator toString(ToStringCreator creator) {
+		return super.toString(creator)
+				.append("root", root)
+				.append("locations", locations)
+				.append("exts", exts)
+				.append("tmp", tmp)
+				.append("useTmp", useTmp)
+				.append("useTmpFor", useTmpFor)
+				;
+	}
+
 
 }

@@ -37,7 +37,6 @@ public class Document extends ObjectBase {
 	public static final String LAST_MODIFIED = "Last-Modified";
 	public static final String SERVER = "Server";
 	public static final String CONNECTION = "Connection";
-	private static final String ATTRIBUTE_AUTHENTICATION_REQUIRED = "Authentication";
 	
 	public static final String ATTRIBUTE_UUID = "uuid";
 	public static final String ATTRIBUTE_CREATION_DATE = "creation_date";

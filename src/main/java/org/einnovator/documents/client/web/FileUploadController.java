@@ -13,6 +13,7 @@ import javax.imageio.ImageIO;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.einnovator.documents.client.config.DocumentsConfiguration;
 import org.einnovator.documents.client.config.FilesConfiguration;
 import org.einnovator.documents.client.manager.DocumentManager;
 import org.einnovator.documents.client.model.Document;
@@ -36,9 +37,17 @@ public class FileUploadController extends ControllerBase {
 	@Autowired
 	protected DocumentManager manager;
 
+	@Autowired
+	protected DocumentsConfiguration config;
+	
+
+	/**
+	 * Create instance of {@code FileUploadController}.
+	 *
+	 */
 	public FileUploadController() {
 	}
-
+	
 	@PostMapping({ "/upload", "/api/upload", "/_upload", "/api/_upload" })
 	public ResponseEntity<Void> upload(@RequestParam("file") MultipartFile file, MultipartHttpServletRequest request, 
 			@RequestParam(value = "key", required = false) String key,
@@ -240,10 +249,6 @@ public class FileUploadController extends ControllerBase {
 		return Long.toString(System.currentTimeMillis());
 	}
 
-	protected FilesConfiguration getFileConfiguration() {
-		return null;
-	}
-
 	protected void update(String key, String id, URI uri, Principal principal) {
 	}
 
@@ -285,5 +290,10 @@ public class FileUploadController extends ControllerBase {
 		}
 		return config != null ? config.isUseTmp() : false;
 	}
+
+	protected FilesConfiguration getFileConfiguration() {
+		return config.getFiles();
+	}
+
 
 }
