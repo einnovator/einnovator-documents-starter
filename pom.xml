@@ -93,6 +93,45 @@
 	</dependencies>
 
 	<build>
+
+		<plugins>
+		
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+				<execution>
+					<id>attach-sources</id>
+					<goals>
+					<goal>jar</goal>
+					</goals>
+				</execution>
+				</executions>
+			</plugin>
+			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration>
+					<doctitle>
+					<![CDATA[Client Library and Spring Boot Starter for<br/>EInnovator Document Store Service<br/>${project.name} ${project.version} API]]>
+					</doctitle>
+					<bottom>
+						 <![CDATA[Copyright 2005, <a href="http://home.einnovator.org">EInnovator, LTD.<a>]]> 
+					</bottom>
+				</configuration>				
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		
+		</plugins>
+
 	  <extensions>
 	      <extension>
 	       <groupId>com.allogy.maven.wagon</groupId>

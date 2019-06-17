@@ -56,8 +56,10 @@ public enum PermissionType {
 	}
 
 	/**
-	 * @param types
-	 * @return
+	 * Check if this {@code PermissionType} is present in array
+	 * 
+	 * @param types the array of {@code PermissionType}
+	 * @return true, if present; false, otherwise.
 	 */
 	public boolean includesAny(PermissionType[] types) {
 		if (types!=null) {

@@ -56,21 +56,12 @@ public interface DocumentManager {
 	 * 
 	 * Return the byte array with binary content.
 	 * 
-	 * @param document a document to be uploaded
+	 * @param uri {@code URI} where to download document
 	 * @param options the {@code DocumentOptions}
-	 * @return URI the direct URI to the document uploaded
+	 * @return URI the direct {@code URI} to the document uploaded
 	 */
 	byte[] content(URI uri, DocumentOptions options, String contentType);
 
-	/**
-	 * List entries in specified folder.
-	 * 
-	 * Return the URI for the uploaded document.
-	 * 
-	 * @param uri URI of document content
-	 * @param options the {@code DocumentOptions}
-	 * @return URI the direct URI to the document uploaded
-	 */
 	
 	/**
 	 * List entries in specified folder.
@@ -94,7 +85,7 @@ public interface DocumentManager {
 	/**
 	 * Delete the document or folder in specified URI.
 	 * 
-	 * @param uri the {@code URI}
+	 * @param uri the document {@code URI}
 	 * @param options optional {@code DocumentOptions}
 	 * @return true, if operation is successful; false, otherwise.
 	 */
@@ -104,9 +95,39 @@ public interface DocumentManager {
 	Document restore(URI uri, DocumentOptions options);
 
 
+	/**
+	 * Make folder/directory at specified path.
+	 * 
+	 * The path is relative to root of the request {@code Principal}.
+	 * 
+	 * @param path the path of directory
+	 * @param options optional {@code DocumentOptions}
+	 * @return URI the {@code URI} of the created {@code Document}
+	 */
 	URI mkdir(String path, DocumentOptions options);
 
+	/**
+	 * Copy file from source path to destination path.
+	 * 
+	 * The path is relative to root of the request {@code Principal}.
+	 * 
+	 * @param path the source path
+	 * @param destPath the destination path
+	 * @param options optional {@code DocumentOptions}
+	 * @return URI the {@code URI} of the created {@code Document}
+	 */
 	URI copy(String path, String destPath, DocumentOptions options);
+
+	/**
+	 * Move file from source path to destination path.
+	 * 
+	 * The path is relative to root of the request {@code Principal}.
+	 * 
+	 * @param path the source path
+	 * @param destPath the destination path
+	 * @param options optional {@code DocumentOptions}
+	 * @return URI the {@code URI} of the created {@code Document}
+	 */
 	URI move(String path, String destPath, DocumentOptions options);
 
 	

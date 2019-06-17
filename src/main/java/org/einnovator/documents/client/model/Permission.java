@@ -247,10 +247,11 @@ public class Permission {
 	}
 
 	/**
-	 * Make {@code Permission} list
-	 * @param read
-	 * @param sHARE_USER
-	 * @return
+	 * Make {@code Permission} list for users with specified {@code PermissionType}
+	 * 
+	 * @param type the {@code PermissionType}
+	 * @param usernames a variadic array of users
+	 * @return the {@code Permission} list 
 	 */
 	public static List<Permission> make(PermissionType type, String... usernames) {
 		List<Permission> permissions = new ArrayList<>();
