@@ -97,7 +97,7 @@ public class DocumentsManagerTests extends SsoTestHelper {
 			FileOutputStream fos = new FileOutputStream(temp);
 			fos.write(content.getBytes(), 0, content.length());
 			fos.close();
-			Document document = new DocumentBuilder().content(new FileInputStream(temp)).build();
+			Document document = new DocumentBuilder().inputStream(new FileInputStream(temp)).build();
 			String name = temp.getName();
 			document.setName(name);
 			document.setDescription("Test document description.");

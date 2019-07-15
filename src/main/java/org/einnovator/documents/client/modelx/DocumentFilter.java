@@ -1,6 +1,11 @@
 package org.einnovator.documents.client.modelx;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.einnovator.documents.client.model.Document;
 import org.einnovator.util.model.ToStringCreator;
+import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -79,6 +84,56 @@ public class DocumentFilter extends DocumentOptions {
 				.append("folders", folders)
 				.append("marker", marker)
 				;
+	}
+	
+	public boolean filter(Document document) {
+		String name = document.getRequiredName();
+		if (!filter(name)) {
+			return false;
+		}
+		return true;
+	}
+	
+	public boolean filter(String name) {
+		if (name!=null) {
+			if (StringUtils.hasText(marker)) {
+				if (name.compareTo(marker)<0) {
+					return false;
+				}
+			}
+			String name_ = name.toLowerCase();
+			boolean strict = Boolean.TRUE.equals(this.strict);
+			if (q!=null) {
+				String q = this.q.toLowerCase();
+				if (!strict && !name_.toLowerCase().contains(q)) {
+					return false;
+				}
+				if (strict && !name_.toLowerCase().startsWith(q)) {
+					return false;
+				}
+			}					
+		}
+		return true;
+	}
+
+	public List<Document> filter(List<Document> documents) {
+		if (documents==null) {
+			return null;
+		}
+		List<Document> documents2 = new ArrayList<>();
+		for (Document document: documents) {
+			if (document!=null && filter(document)) {
+				documents2.add(document);
+			}
+		}
+		return documents2;
+	}
+	
+	public static List<Document> filter(DocumentFilter filter, List<Document> documents) {
+		if (filter==null) {
+			return documents;
+		}
+		return filter.filter(documents);
 	}
 
 }

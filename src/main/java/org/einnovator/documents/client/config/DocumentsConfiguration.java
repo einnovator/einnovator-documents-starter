@@ -13,6 +13,8 @@ public class DocumentsConfiguration extends ObjectBase {
 
 	public final static String DEFAULT_SERVER = "http://localhost:2020";
 
+	private String DEFAULT_LOCAL_ROOT = "/data";
+
 	private String server = DEFAULT_SERVER;
 	
 	@NestedConfigurationProperty
@@ -22,6 +24,10 @@ public class DocumentsConfiguration extends ObjectBase {
 	private ConnectionConfiguration connection = new ConnectionConfiguration();
 
 
+	private Boolean local = false;
+	
+	private String localRoot = DEFAULT_LOCAL_ROOT;
+	
 	public DocumentsConfiguration() {
 	}
 
@@ -80,12 +86,51 @@ public class DocumentsConfiguration extends ObjectBase {
 	}
 
 	
+	/**
+	 * Get the value of property {@code localRoot}.
+	 *
+	 * @return the localRoot
+	 */
+	public String getLocalRoot() {
+		return localRoot;
+	}
+
+	/**
+	 * Set the value of property {@code localRoot}.
+	 *
+	 * @param localRoot the localRoot to set
+	 */
+	public void setLocalRoot(String localRoot) {
+		this.localRoot = localRoot;
+	}
+	
+
+	/**
+	 * Get the value of property {@code local}.
+	 *
+	 * @return the local
+	 */
+	public Boolean getLocal() {
+		return local;
+	}
+
+	/**
+	 * Set the value of property {@code local}.
+	 *
+	 * @param local the local to set
+	 */
+	public void setLocal(Boolean local) {
+		this.local = local;
+	}
+
 	@Override
 	public ToStringCreator toString(ToStringCreator creator) {
 		return creator
 				.append("server", server)
 				.append("files", files)
 				.append("connection", connection)
+				.append("local", local)
+				.append("localRoot", localRoot)
 				;
 	}
 }

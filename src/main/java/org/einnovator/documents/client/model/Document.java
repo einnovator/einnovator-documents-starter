@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -15,6 +16,8 @@ import java.util.Map;
 import org.einnovator.util.model.ObjectBase;
 import org.einnovator.util.model.ToStringCreator;
 import org.springframework.util.StreamUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -23,6 +26,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class Document extends ObjectBase {
+
+	public static final String DELIMITER = "/";
 
 	public static final String CACHE_CONTROL = "Cache-Control";
 	public static final String CONTENT_DISPOSITION = "Content-Disposition";
@@ -85,8 +90,11 @@ public class Document extends ObjectBase {
 	public Document() {
 	}
 
+	public Document(String path) {
+		this.path = path;
+	}
+
 	public Document(String path, Owner owner, Map<String, Object> meta, Map<String, String> attributes) {
-		super();
 		this.path = path;
 		this.owner = owner;
 		if (meta != null) {
@@ -514,9 +522,63 @@ public class Document extends ObjectBase {
 	}
 
 
-	/* (non-Javadoc)
-	 * @see org.einnovator.util.model.ObjectBase#toString0(org.einnovator.util.model.ToStringCreator)
-	 */
+	@JsonIgnore
+	public byte[] getOrReadContent() {
+		if (content == null && inputStream != null) {
+			try {
+				content = StreamUtils.copyToByteArray(inputStream);
+				inputStream.close();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		return content;
+	}
+	
+	@JsonIgnore
+	public String getRequiredName() {
+		return getRequiredName(DELIMITER);
+	}
+
+	public String getRequiredName(String delimiter) {
+		if (this.name==null) {
+			this.name = getNameFromPath(delimiter);
+		}
+		return this.name;
+	}
+
+	public String getNameFromPath(String delimiter) {
+		String name;
+		if (path != null) {
+			int i = path.lastIndexOf(delimiter);
+			if (i > 0) {
+				if (path.endsWith(delimiter)) {
+					folder = true;
+					String path2 = path.substring(0, path.length() - 1);
+					i = path2.lastIndexOf(delimiter);
+					if (i > 0) {
+						name = path2.substring(i + 1);
+					} else {
+						name = path2;
+					}
+				} else {
+					name = path.substring(i + 1);
+				}
+			} else {
+				name = path;
+			}
+		} else {
+			name = null;
+		}
+		return name;
+	}
+
+	public String setNameFromPath(String delimiter) {
+		String name = getNameFromPath(delimiter);
+		this.name = name;
+		return name;
+	}
+
 	@Override
 	public ToStringCreator toString0(ToStringCreator creator) {
 		return creator
@@ -538,6 +600,46 @@ public class Document extends ObjectBase {
 			.append("img", img);
 	}
 
-
+	public static Document makeFolder(String path) {
+		if (!path.endsWith(DELIMITER)) {
+			path += DELIMITER;
+		}
+		Document document = new Document(path);
+		document.setFolder(true);
+		document.setContentLength(0);
+		document.setNameFromPath(DELIMITER);
+		return document;
+	}
+	
+	public static Document makeDocument(MultipartFile file, String path, Document document) {
+		if (document==null) {
+			document = new Document();
+		}
+		String contentType = getContentType(file);
+		Map<String, Object> meta = Document.MetaBuilder.meta().contentType(contentType).length(Long.toString(file.getSize())).build();
+		document.setPath(path);
+		try {
+			document.setInputStream(file.getInputStream());
+		} catch (IOException e) {
+			return null;
+			
+		}
+		document.setContentLength(file.getSize());
+		document.setMeta(meta);
+		return document;
+	}
+	
+	public static String getContentType(MultipartFile file) {
+		try {
+			ByteArrayInputStream stream = new ByteArrayInputStream(file.getBytes());
+			String contentType = URLConnection.guessContentTypeFromStream(stream);
+			if (!StringUtils.hasText(contentType)) {
+				contentType = URLConnection.guessContentTypeFromName(file.getOriginalFilename());
+			}
+			return StringUtils.hasText(contentType) ? contentType : file.getContentType();			
+		} catch (IOException e) {
+			return null;
+		}
+	}
 	
 }

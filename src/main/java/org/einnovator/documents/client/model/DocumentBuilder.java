@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class DocumentBuilder {
+	
 	private String path;
 	
 	private Owner owner;
@@ -50,15 +51,13 @@ public class DocumentBuilder {
 		return this;
 	}
 
-
-	public DocumentBuilder content(InputStream inputStream) {
+	public DocumentBuilder inputStream(InputStream inputStream) {
 		this.inputStream = inputStream;
 		return this;
 	}
-
 	
-	public DocumentBuilder name(InputStream inputStream) {
-		this.inputStream = inputStream;
+	public DocumentBuilder name(String name) {
+		this.name = name;
 		return this;
 	}
 	
