@@ -5,7 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.einnovator.util.MappingUtils;
 import org.einnovator.util.SecurityUtil;
 import org.springframework.cache.Cache;
@@ -16,7 +17,7 @@ public class ManagerBase {
 
 	public static final String NOTIFICATION_TYPE = "Notification";
 
-	private Logger logger = Logger.getLogger(this.getClass());
+	private final Log logger = LogFactory.getLog(getClass());
 
 	@SuppressWarnings("unchecked")
 	protected <T> T getCacheValueForPrincipal(Class<T> type, Cache cache, Object... keys) {
