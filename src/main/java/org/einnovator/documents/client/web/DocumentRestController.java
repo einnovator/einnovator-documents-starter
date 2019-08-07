@@ -1,5 +1,6 @@
 package org.einnovator.documents.client.web;
 
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
@@ -7,18 +8,24 @@ import java.security.Principal;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.util.StreamUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.einnovator.documents.client.manager.DocumentManager;
 import org.einnovator.documents.client.model.Document;
 import org.einnovator.documents.client.modelx.DocumentFilter;
@@ -34,6 +41,46 @@ public class DocumentRestController extends ControllerBase {
 	@Autowired
 	protected DocumentManager manager;
 	
+	
+	@GetMapping({ "/_/**" })
+	@CrossOrigin(origins = "*")
+	public ResponseEntity<Void> download(DocumentOptions options,
+			HttpServletResponse response, HttpServletRequest request, Principal principal) {
+		
+		String path = getPath(request, "/_/");
+
+		try {
+			logger.debug("download: " + path + " " + format(principal));
+
+			Document document = manager.read(path, options);
+
+			if (document == null) {
+				return badrequest("download", response, path);
+			}
+
+			response.setContentLengthLong(document.getContentLength());
+			if (StringUtils.hasText(document.getContentEncoding())) {
+				response.setCharacterEncoding(document.getContentEncoding());
+			}
+			if (StringUtils.hasText(document.getContentLanguage())) {
+				response.setHeader(HttpHeaders.CONTENT_LANGUAGE, document.getContentLanguage());
+			}
+			if (StringUtils.hasText(document.getContentType())) {
+				response.setHeader(HttpHeaders.CONTENT_TYPE, document.getContentType());
+			}
+			if (StringUtils.hasText(document.getContentDisposition())) {
+				response.setHeader(HttpHeaders.CONTENT_DISPOSITION, document.getContentDisposition());
+			}
+
+			InputStream inputStream = document.getOrCreateInputStream();
+			StreamUtils.copy(inputStream, response.getOutputStream());
+			inputStream.close();
+
+			return null;
+		} catch (Exception e) {
+			return status(String.format("download: %s", path), e, response);
+		}
+	}
 	
 	@GetMapping("/__/**")
 	public  ResponseEntity<List<Document>>  list(DocumentFilter filter, PageOptions options,

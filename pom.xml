@@ -117,7 +117,7 @@
 					<![CDATA[Client Library and Spring Boot Starter for<br/>EInnovator Document Store Service<br/>${project.name} ${project.version} API]]>
 					</doctitle>
 					<bottom>
-						 <![CDATA[Copyright 2005, <a href="http://home.einnovator.org">EInnovator, LTD.<a>]]> 
+						 <![CDATA[Copyright 2019, <a href="http://home.einnovator.org">EInnovator, LTD.<a>]]> 
 					</bottom>
 				</configuration>				
 				<executions>

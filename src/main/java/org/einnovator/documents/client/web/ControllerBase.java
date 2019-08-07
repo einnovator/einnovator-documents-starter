@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 
 
-public class ControllerBase {
+public class ControllerBase extends org.einnovator.util.web.ControllerBase {
 
 
 	protected boolean isAllowed(Principal principal, boolean admin) {
@@ -46,11 +46,7 @@ public class ControllerBase {
 		}
 		return false;
 	}
-	
-	protected String format(HttpStatus status) {
-		return status + " " + status.getReasonPhrase();
-	}
-	
+
 	protected void setupToken(Principal principal, Authentication authentication) {
 	}
 
@@ -59,7 +55,4 @@ public class ControllerBase {
 		return false;
 	}
 
-	public static String redirect(String uri) {
-		return "redirect:" + uri;	
-	}
 }

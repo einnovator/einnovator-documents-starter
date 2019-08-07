@@ -21,7 +21,9 @@ import org.einnovator.documents.client.model.Permission;
 import org.einnovator.documents.client.modelx.DocumentFilter;
 import org.einnovator.documents.client.modelx.DocumentOptions;
 import org.einnovator.util.PathUtil;
+import org.einnovator.util.SecurityUtil;
 import org.einnovator.util.UriUtils;
+import org.einnovator.util.web.WebUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -55,7 +57,7 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 	public URI write(Document document, DocumentOptions options) {
 		try {
 			String lpath = getLocalPath(document);
-			byte[] content = document.getContent();
+			byte[] content = document.getOrReadContent();
 			try {
 				File file = new File(lpath);
 				file.getParentFile().mkdirs();
@@ -63,19 +65,55 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 			} catch (IOException e) {
 				throw new RuntimeException(lpath, e);
 			}		
-			return write(document, options);
+			String url = makeUrl(document.getPath());
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("write: %s %s %s", document.getPath(), lpath, url));				
+			}
+
+			return UriUtils.makeURI(url);
 		} catch (RuntimeException e) {
+			e.printStackTrace();
 			logger.error(String.format("write: %s %s %s",  e, document!=null ? document.getPath() : null, options));
 			return null;
 		}
 	}
 	
+	private String makeUrl(String path) {
+		String baseUrl = WebUtil.getBaseUrl();
+		if (baseUrl==null) {
+			baseUrl = "file://";
+		}
+		String principalName = SecurityUtil.getPrincipalName();
+		String princialRoot =  principalName!=null ? "~" + principalName : "";
+		String url = PathUtil.concatAll(baseUrl, "/api/_/", princialRoot, path);
+		return url;
+	}
 	private String getLocalPath(Document document) {
 		return getLocalPath(document.getPath());
 	}
 
 	private String getLocalPath(String path) {
-		return PathUtil.concat(config.getLocalRoot(), PathUtil.concat(config.getFiles().getRoot(),path));
+		String principalName = SecurityUtil.getPrincipalName();
+		String princialRoot =  principalName!=null ? principalName : "";
+		if (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("file://")) {
+			int i = path.indexOf("~");
+			if (i>0) {
+				path = path.substring(0, i-1);
+			}
+		}
+		if (path.startsWith("/api/_/")) {
+			path = path.substring("/api/_/".length());
+		}
+		if (path.startsWith("~")) {
+			int i = path.indexOf("/");
+			if (i>0) {
+				princialRoot= path.substring(1, i).trim();
+				if (i+1<path.length()) {
+					path = path.substring(i+1);					
+				}
+			}
+		}
+		return PathUtil.concatAll(config.getLocalRoot(), config.getFiles().getRoot(), princialRoot, path);
 	}
 
 	@Override

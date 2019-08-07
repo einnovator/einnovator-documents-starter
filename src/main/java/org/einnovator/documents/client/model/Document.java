@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLConnection;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -15,6 +16,7 @@ import java.util.Map;
 
 import org.einnovator.util.model.ObjectBase;
 import org.einnovator.util.model.ToStringCreator;
+import org.springframework.format.datetime.DateFormatter;
 import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,22 +31,22 @@ public class Document extends ObjectBase {
 
 	public static final String DELIMITER = "/";
 
-	public static final String CACHE_CONTROL = "Cache-Control";
-	public static final String CONTENT_DISPOSITION = "Content-Disposition";
-	public static final String CONTENT_ENCODING = "Content-Encoding";
-	public static final String CONTENT_LENGTH = "Content-Length";
-	public static final String CONTENT_RANGE = "Content-Range";
-	public static final String CONTENT_MD5 = "Content-MD5";
 	public static final String CONTENT_TYPE = "Content-Type";
+	public static final String CONTENT_LENGTH = "Content-Length";
+	public static final String CONTENT_ENCODING = "Content-Encoding";
+	public static final String CONTENT_DISPOSITION = "Content-Disposition";
 	public static final String CONTENT_LANGUAGE = "Content-Language";
-	public static final String DATE = "Date";
-	public static final String ETAG = "ETag";
+	public static final String CONTENT_MD5 = "Content-MD5";
+	public static final String CONTENT_RANGE = "Content-Range";
 	public static final String LAST_MODIFIED = "Last-Modified";
-	public static final String SERVER = "Server";
-	public static final String CONNECTION = "Connection";
-	
-	public static final String ATTRIBUTE_UUID = "uuid";
-	public static final String ATTRIBUTE_CREATION_DATE = "creation_date";
+	public static final String LAST_ACCESS = "last_access";
+	public static final String CREATION_DATE = "creation_date";
+	public static final String ETAG = "ETag";
+	public static final String CACHE_CONTROL = "Cache-Control";
+	public static final String EXPIRES ="Expires";
+	public static final String STORAGE_CLASS = "Storage-Class";
+	public static final String VERSION_ID = "version_id";	
+	public static final String UUID = "uuid";
 
 
 	private String uri;
@@ -386,6 +388,19 @@ public class Document extends ObjectBase {
 		}
 		return new String(bytes);
 	}
+	
+	@JsonIgnore
+	public InputStream getOrCreateInputStream() {
+		if (inputStream == null) {
+			if (content == null) {
+				content = new byte[0];
+				setContentLength(0L);
+			}
+			inputStream = new ByteArrayInputStream(content);
+		}
+		return inputStream;
+	}
+
 
 	public String getIcon() {
 		return icon;
@@ -445,6 +460,7 @@ public class Document extends ObjectBase {
 	public void setContentLength(long contentLength) {
 		meta.put(CONTENT_LENGTH, contentLength);
 	}
+	
 
 	@JsonIgnore
 	public long getContentLength() {
@@ -577,6 +593,67 @@ public class Document extends ObjectBase {
 		String name = getNameFromPath(delimiter);
 		this.name = name;
 		return name;
+	}
+
+	public String getContentEncoding() {
+		return meta != null ? (String) meta.get(CONTENT_ENCODING) : null;
+	}
+
+	public String getContentDisposition() {
+		return meta != null ? (String) meta.get(CONTENT_DISPOSITION) : null;
+	}
+
+	public String getContentLanguage() {
+		return meta != null ? (String) meta.get(CONTENT_LANGUAGE) : null;
+	}
+
+	public String getContentMD5() {
+		return meta != null ? (String) meta.get(CONTENT_MD5) : null;
+	}
+
+	public String getContentRange() {
+		return meta != null ? (String) meta.get(CONTENT_RANGE) : null;
+	}
+
+	public Date getLastModified() {
+		return getMetaAsDate(LAST_MODIFIED);
+	}
+
+	public String getETag() {
+		return meta != null ? (String) meta.get(ETAG) : null;
+	}
+
+	public String getCacheControl() {
+		return meta != null ? (String) meta.get(CACHE_CONTROL) : null;
+	}
+
+	@JsonIgnore
+	public Date getMetaAsDate(String path) {
+		if (meta != null && meta.containsKey(path)) {
+			if (meta.get(path) instanceof Date) {
+				return (Date) meta.get(path);
+			}
+			if (meta.get(path) instanceof Long) {
+				return new Date(((Number) meta.get(path)).longValue());
+			}
+			try {
+				return new DateFormatter().parse((String) meta.get(path), null);
+			} catch (ParseException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		return null;
+
+	}
+
+	@JsonIgnore
+	public Date getExpires() {
+		return getMetaAsDate(EXPIRES);
+	}
+
+	@JsonIgnore
+	public String getStorageClass() {
+		return meta != null ? (String) meta.get(STORAGE_CLASS) : null;
 	}
 
 	@Override
