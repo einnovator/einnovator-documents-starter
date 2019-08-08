@@ -10,11 +10,14 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.einnovator.documents.client.manager.DocumentManager;
+import org.einnovator.documents.client.manager.LocalDocumentManager;
+import org.einnovator.documents.client.model.Document;
+import org.einnovator.documents.client.modelx.DocumentFilter;
+import org.einnovator.documents.client.modelx.DocumentOptions;
+import org.einnovator.util.PageOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.util.StreamUtils;
@@ -25,22 +28,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.einnovator.documents.client.manager.DocumentManager;
-import org.einnovator.documents.client.model.Document;
-import org.einnovator.documents.client.modelx.DocumentFilter;
-import org.einnovator.documents.client.modelx.DocumentOptions;
-import org.einnovator.util.PageOptions;
 
 
 @RequestMapping({"/api"})
 public class DocumentRestController extends ControllerBase {
-
-	private final Log logger = LogFactory.getLog(getClass());
 	
 	@Autowired
 	protected DocumentManager manager;
-	
+
+	@Autowired
+	protected LocalDocumentManager documentManagerLocal;
+
 	
 	@GetMapping({ "/_/**" })
 	@CrossOrigin(origins = "*")
@@ -50,7 +48,9 @@ public class DocumentRestController extends ControllerBase {
 		String path = getPath(request, "/_/");
 
 		try {
-			logger.debug("download: " + path + " " + format(principal));
+			if (logger.isDebugEnabled()) {
+	 			debug("download", path, principal.getName());				
+			}
 
 			Document document = manager.read(path, options);
 
@@ -78,33 +78,49 @@ public class DocumentRestController extends ControllerBase {
 
 			return null;
 		} catch (Exception e) {
-			return status(String.format("download: %s", path), e, response);
+			return status("download", e, response, path);
 		}
 	}
 	
+	protected Document read(String path, DocumentOptions options) {
+		if (isLocal(path)) {
+			return documentManagerLocal.read(path, options);
+		}
+		Document document = manager.read(path, options);
+		return document;
+	}
+	
+	/**
+	 * Check if uri or path is local.
+	 * 
+	 * @param path the uri or path
+	 * @return true, if local path or uri; false, otherwise.
+	 */
+	protected boolean isLocal(String path) {
+		return false;
+	}
+
 	@GetMapping("/__/**")
 	public  ResponseEntity<List<Document>>  list(DocumentFilter filter, PageOptions options,
-			Principal principal, Authentication authentication, HttpServletRequest request) {
-		if (principal==null) {
-			logger.error("list: " + format(HttpStatus.UNAUTHORIZED));
-			return new ResponseEntity<List<Document>>(HttpStatus.UNAUTHORIZED);	
-		}
+			Principal principal, Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
+
 		String path = getPath(request, "/api/__/");
 		setupToken(principal, authentication);
+		
 		List<Document> documents = manager.list(path, filter, options.toPageRequest());
-		logger.info("list: " + path + " " + documents);
+		
+		if (logger.isDebugEnabled()) {
+ 			debug("list", path, documents!=null ? documents.size() : null);				
+		}
 
-		return new ResponseEntity<List<Document>>(documents, HttpStatus.OK);
+		return ok(documents, "list", response);
 	}
 		
 	
 	@GetMapping({ "/_meta/**" })
 	public ResponseEntity<Document> meta(DocumentOptions options,
-			Principal principal, Authentication authentication, HttpServletRequest request) {
-		if (principal==null) {
-			logger.error("meta:  " + HttpStatus.UNAUTHORIZED.getReasonPhrase());
-			return new ResponseEntity<Document>(HttpStatus.UNAUTHORIZED);	
-		}
+			Principal principal, Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
+
 		
 		String path = getPath(request, "/api/_meta/");
 
@@ -112,57 +128,50 @@ public class DocumentRestController extends ControllerBase {
 		Document document = manager.read(path, options);
 		
 		if (document==null) {
-			logger.error("meta: " + HttpStatus.NOT_FOUND.getReasonPhrase() + ": " + path);			
-			return new ResponseEntity<Document>(HttpStatus.NOT_FOUND);	
+			return notfound("meta", response, path);
 		}
-
-		logger.info("meta: " + document);
-		return ResponseEntity.ok(document);
+		return ok(document, "meta", response);
 	}
 	
 	@PostMapping("/__/**")
 	public ResponseEntity<Void> mkdir(@ModelAttribute("document") Document document, DocumentOptions options,
-			HttpServletRequest request, Principal principal, Authentication authentication) {
-		if (principal==null) {
-			logger.error("mkdir:  " + HttpStatus.UNAUTHORIZED.getReasonPhrase());
-			return new ResponseEntity<Void>(HttpStatus.UNAUTHORIZED);	
-		}
+			HttpServletRequest request, Principal principal, Authentication authentication, HttpServletResponse response) {
+
 		String path = getPath(request, "/api/__/");
 		
 		try {
 			setupToken(principal, authentication);
 			URI uri = manager.mkdir(path, options);
 			if (uri==null) {
-				logger.error("mkdir: " + document);
-				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+				return badrequest("mkdir", response, path);
 			}
 			return ResponseEntity.created(uri).build();
 		} catch (RuntimeException e) {
-			logger.error("mkdir: " + document + " " + e);
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			return badrequest("mkdir", response, e, path);
 		}		
 	}
 	
 	
 	@DeleteMapping("/__/**")
-	public String delete(DocumentOptions options,
-			Principal principal, Authentication authentication, HttpServletRequest request) {
-		if (principal==null) {
-			logger.error("delete:  " + HttpStatus.UNAUTHORIZED.getReasonPhrase());
-			return redirect("/");
-		}
+	public ResponseEntity<Void> delete(DocumentOptions options,
+			Principal principal, Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
+
 		String path = getPath(request, "/api/__/");
 
-		setupToken(principal, authentication);
-		if (!manager.delete(path, options)) {
-			logger.error("delete: " + HttpStatus.NOT_FOUND.getReasonPhrase() + ": " + path);			
-			return "redirect:/document";
-		}
-		return"redirect:/document";
+		try {
+			setupToken(principal, authentication);
+			if (!manager.delete(path, options)) {
+				return notfound("delete", response, path);
+			}
+			return nocontent("delete", response, path);
+		} catch (RuntimeException e) {
+			return badrequest("delete", response, e, path);
+		}	
+		
 	}
 
 	
-	private String getPath(HttpServletRequest request, String prefix) {
+	protected String getPath(HttpServletRequest request, String prefix) {
 		String path = request.getPathInfo();
 				
 		if (path == null) {
@@ -179,7 +188,7 @@ public class DocumentRestController extends ControllerBase {
 				path = URLDecoder.decode(path, "UTF-8");
 			}
 		} catch (UnsupportedEncodingException e) {
-			logger.error("getPath: could not decode URL ", e);
+			error("getPath: could not decode URL", e, path);
 			path = aux;
 		}
 		

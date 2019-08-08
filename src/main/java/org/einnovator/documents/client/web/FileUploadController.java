@@ -10,6 +10,7 @@ import java.security.Principal;
 import java.util.List;
 
 import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -21,15 +22,16 @@ import org.einnovator.documents.client.modelx.DocumentOptions;
 import org.einnovator.util.PathUtil;
 import org.einnovator.util.UriUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
+@RequestMapping({"/", "/api"})
 public class FileUploadController extends ControllerBase {
 
 	private final Log logger = LogFactory.getLog(getClass());
@@ -48,7 +50,7 @@ public class FileUploadController extends ControllerBase {
 	public FileUploadController() {
 	}
 	
-	@PostMapping({ "/upload", "/api/upload", "/_upload", "/api/_upload" })
+	@PostMapping({ "/upload", "/_upload" })
 	public ResponseEntity<Void> upload(@RequestParam("file") MultipartFile file, MultipartHttpServletRequest request, 
 			@RequestParam(value = "key", required = false) String key,
 			@RequestParam(value = "pwd", required = false) String folder,
@@ -57,11 +59,10 @@ public class FileUploadController extends ControllerBase {
 			@RequestParam(value = "id", required = false) String id, Document document,
 			@RequestParam(required = false) Boolean crop,
 			DocumentOptions options,
-			Principal principal, Authentication authentication) throws IOException {
+			Principal principal, Authentication authentication, HttpServletResponse response) throws IOException {
 
 		if (principal == null) {
-			logger.error("upload: " + HttpStatus.UNAUTHORIZED.getReasonPhrase());
-			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+			return unauthorized("upload", response);
 		}
 
 		String name = file.getOriginalFilename();
@@ -73,8 +74,7 @@ public class FileUploadController extends ControllerBase {
 			String extension = name.substring(name.lastIndexOf(".") + 1);
 
 			if (validExtensions != null && !validExtensions.contains(extension.toLowerCase())) {
-				logger.error("upload: Invalid file extension: " + extension.toLowerCase());
-				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+				return badrequest("upload: Invalid file extension:", response, extension.toLowerCase());
 			}
 		}
 
@@ -82,8 +82,8 @@ public class FileUploadController extends ControllerBase {
 		if (Boolean.TRUE.equals(crop)) {
 			File croppedImage = cropImage(file);
 			if (croppedImage == null) {
-				logger.error("upload: Error cropping image");
-				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+				return badrequest("upload: Error cropping image", response);
+
 			}
 			in = new FileInputStream(croppedImage);
 		} else {
@@ -112,22 +112,21 @@ public class FileUploadController extends ControllerBase {
 			}
 			uri = uploadResource(document, options);
 			if (uri == null) {
-				logger.error("upload: [UPLOAD]: " + key + " " + id + " " + name);
-				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+				return internalerror("upload", response, key, id, name);
 			}
 		} catch (RuntimeException e) {
-			logger.error("upload: " + key + " " + name + " " + id + " " + e);
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			return internalerror("upload", response, e, key, id, name);
 		}
 
 		try {
 			update(key, id, uri, principal);
 		} catch (RuntimeException e) {
-			logger.error("upload: [UPDATE]: " + key + " " + name + " " + id + " " + uri + " " + e);
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			return internalerror("upload", response, e, key, id, name, uri);
 		}
 
-		logger.info("upload: " + key + " " + name + " " + id + " " + uri);
+		if (logger.isDebugEnabled()) {
+			debug("upload", key, name, id, uri);			
+		}
 
 		return ResponseEntity.created(uri).build();
 	}
@@ -256,7 +255,7 @@ public class FileUploadController extends ControllerBase {
 		try {
 			return manager.move(tmpUri, getPathFromTmpPath(tmpUri), options);
 		} catch (RuntimeException e) {
-			logger.error("moveFromTmp: " + tmpUri + " " + e);
+			error("moveFromTmp",  tmpUri, e);
 			return UriUtils.makeURI(tmpUri);
 		}
 	}

@@ -2,13 +2,17 @@ package org.einnovator.documents.client.web;
 
 import java.security.Principal;
 
-import org.springframework.http.HttpStatus;
+import org.einnovator.util.security.UserTokenProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 
 
 public class ControllerBase extends org.einnovator.util.web.ControllerBase {
 
 
+	@Autowired(required=false)
+	private UserTokenProvider tokenProvider;
+	
 	protected boolean isAllowed(Principal principal, boolean admin) {
 		if (principal==null) {
 			return false;
@@ -48,6 +52,9 @@ public class ControllerBase extends org.einnovator.util.web.ControllerBase {
 	}
 
 	protected void setupToken(Principal principal, Authentication authentication) {
+		if (tokenProvider!=null) {
+			tokenProvider.setupToken();
+		}
 	}
 
 	
