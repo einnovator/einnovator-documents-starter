@@ -35,7 +35,7 @@ public class DocumentsUtil {
 
 		boolean localfs = false;
 
-		if ("true".equalsIgnoreCase(documentsLocal) || (!"false".equalsIgnoreCase(documentsLocal) && !StringUtils.hasText(documentsServer))) {
+		if ("true".equalsIgnoreCase(documentsLocal) || (!"false".equalsIgnoreCase(documentsLocal) && isEmpty(documentsServer))) {
 			localfs = true;
 		}
 
@@ -50,5 +50,10 @@ public class DocumentsUtil {
 
 		return profiles.toArray(new String[profiles.size()]);
 	}
+	
+	private static boolean isEmpty(String s) {
+		return !StringUtils.hasText(s) || s.contains("***");
+	}
+	
 	
 }

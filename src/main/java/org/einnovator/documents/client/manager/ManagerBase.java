@@ -18,14 +18,14 @@ public class ManagerBase extends CachingManagerBase {
 		if (data==null || !data.getClass().getSimpleName().equals(NOTIFICATION_TYPE)) {
 			return null;
 		}
-		return MappingUtils.convert(MapUtil.resolve("source.type.details", data), type);
+		return MappingUtils.convert(MapUtil.resolve("source.details", data), type);
 	}
 
 	protected String getNotificationAction(Object data) {
 		if (data==null || !data.getClass().getSimpleName().equals(NOTIFICATION_TYPE)) {
 			return null;
 		}
-		return MappingUtils.convert(MapUtil.resolve("action.type.details", data), String.class);
+		return MappingUtils.convert(MapUtil.resolve("action.details", data), String.class);
 	}
 
 	protected String getNotificationPrincipal(Object data) {

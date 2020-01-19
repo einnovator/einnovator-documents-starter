@@ -218,7 +218,7 @@ public class FileUploadController extends ControllerBase {
 		}
 		String ext = null;
 		if (StringUtils.hasText(name)) {
-			int i= name.lastIndexOf(".");
+			int i= name.indexOf(".");
 			if (i>0 && i<name.length()-1) {
 				ext = name.substring(i+1);
 				name = name.substring(0, i);
@@ -245,7 +245,7 @@ public class FileUploadController extends ControllerBase {
 	}
 
 	protected String generateUUID(String key, String name) {
-		return Long.toString(System.currentTimeMillis());
+		return Long.toString(System.currentTimeMillis()/1000);
 	}
 
 	protected void update(String key, String id, URI uri, Principal principal) {
