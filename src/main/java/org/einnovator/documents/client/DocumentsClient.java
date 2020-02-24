@@ -70,9 +70,10 @@ public class DocumentsClient {
 		this.config = config;
 	}
 
-
+	//
 	// Getters/Setters
-
+	//
+	
 	/**
 	 * Get the value of property {@code config}.
 	 *
@@ -341,6 +342,9 @@ public class DocumentsClient {
 		return response.getHeaders().getLocation();
 	}
 
+	//
+	// Authorities
+	//
 
 	public URI addAuthority(String path, Authority authority, DocumentOptions options, DocumentsClientContext context) {
 		URI uri = makeURI(DocumentsEndpoints.authorities(path, config));
@@ -363,6 +367,10 @@ public class DocumentsClient {
 		exchange(request, Void.class, context);
 	}
 
+	//
+	// HTTP transport
+	//
+	
 	protected <T> ResponseEntity<T> exchange(RequestEntity<?> request, Class<T> responseType, DocumentsClientContext context) throws RestClientException {
 		OAuth2RestTemplate restTemplate = getRequiredRestTemplate(context);
 
