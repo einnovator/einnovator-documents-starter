@@ -7,6 +7,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.einnovator.documents.client.DocumentsClient;
 import org.einnovator.documents.client.config.DocumentsClientConfiguration;
+import org.einnovator.documents.client.config.DocumentsClientContext;
 import org.einnovator.documents.client.model.Document;
 import org.einnovator.documents.client.modelx.DocumentFilter;
 import org.einnovator.documents.client.modelx.DocumentOptions;
@@ -43,7 +44,7 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 
 
 	@Override
-	public URI write(Document document, DocumentOptions options, DocumentsClientConfiguration context) {
+	public URI write(Document document, DocumentOptions options, DocumentsClientContext context) {
 		try {
 			return client.write(document, options, context);
 		} catch (RuntimeException e) {
@@ -53,7 +54,7 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 	}
 
 	@Override
-	public Document read(String path, DocumentOptions options, DocumentsClientConfiguration context) {
+	public Document read(String path, DocumentOptions options, DocumentsClientContext context) {
 		try {
 			return client.read(path, options, context);
 		} catch (RuntimeException e) {
@@ -64,7 +65,7 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 
 	
 	@Override
-	public Document read(URI uri, DocumentOptions options, DocumentsClientConfiguration context) {
+	public Document read(URI uri, DocumentOptions options, DocumentsClientContext context) {
 		try {
 			return client.read(uri, options, context);
 		} catch (RuntimeException e) {
@@ -76,7 +77,7 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 
 
 	@Override
-	public byte[] content(URI uri, DocumentOptions options, String contentType, DocumentsClientConfiguration context) {
+	public byte[] content(URI uri, DocumentOptions options, String contentType, DocumentsClientContext context) {
 		try {
 			return client.content(uri, options, contentType, context);
 		} catch (RuntimeException e) {
@@ -87,7 +88,7 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 
 
 	@Override
-	public List<Document> list(String path, DocumentFilter filter, Pageable pageable, DocumentsClientConfiguration context) {
+	public List<Document> list(String path, DocumentFilter filter, Pageable pageable, DocumentsClientContext context) {
 		try {
 			return client.list(path, filter, pageable, context);
 		} catch (RuntimeException e) {
@@ -97,7 +98,7 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 	}
 
 	@Override
-	public boolean delete(String path, DocumentOptions options, DocumentsClientConfiguration context) {
+	public boolean delete(String path, DocumentOptions options, DocumentsClientContext context) {
 		try {
 			client.delete(path, options, context);
 			return true;
@@ -109,7 +110,7 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 
 
 	@Override
-	public boolean delete(URI uri, DocumentOptions options, DocumentsClientConfiguration context) {
+	public boolean delete(URI uri, DocumentOptions options, DocumentsClientContext context) {
 		try {
 			client.delete(uri, options, context);
 			return true;
@@ -122,7 +123,7 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 
 	
 	@Override
-	public Document restore(String path, DocumentOptions options, DocumentsClientConfiguration context) {
+	public Document restore(String path, DocumentOptions options, DocumentsClientContext context) {
 		try {
 			return client.restore(path, options, context);
 		} catch (RuntimeException e) {
@@ -132,7 +133,7 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 	}
 
 	@Override
-	public Document restore(URI uri, DocumentOptions options, DocumentsClientConfiguration context) {
+	public Document restore(URI uri, DocumentOptions options, DocumentsClientContext context) {
 		try {
 			return client.restore(uri, options, context);
 		} catch (RuntimeException e) {
@@ -143,7 +144,7 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 
 
 	@Override
-	public URI mkdir(String path, DocumentOptions options, DocumentsClientConfiguration context) {
+	public URI mkdir(String path, DocumentOptions options, DocumentsClientContext context) {
 		try {
 			return client.mkdir(path, options, context);
 		} catch (RuntimeException e) {
@@ -154,7 +155,7 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 
 
 	@Override
-	public URI copy(String path, String destPath, DocumentOptions options, DocumentsClientConfiguration context) {
+	public URI copy(String path, String destPath, DocumentOptions options, DocumentsClientContext context) {
 		try {
 			return client.copy(path, destPath, options, context);
 		} catch (RuntimeException e) {
@@ -165,7 +166,7 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 
 
 	@Override
-	public URI move(String path, String destPath, DocumentOptions options, DocumentsClientConfiguration context) {
+	public URI move(String path, String destPath, DocumentOptions options, DocumentsClientContext context) {
 		try {
 			return client.move(path, destPath, options, context);
 		} catch (RuntimeException e) {
@@ -176,7 +177,7 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 
 
 	@Override
-	public URI addAuthority(String path, Authority authority, DocumentOptions options, DocumentsClientConfiguration context) {
+	public URI addAuthority(String path, Authority authority, DocumentOptions options, DocumentsClientContext context) {
 		try {
 			return client.addAuthority(path, authority, options, context);
 		} catch (RuntimeException e) {
@@ -186,7 +187,7 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 	}
 
 	@Override
-	public boolean removeAuthority(String path, String id, DocumentOptions options, DocumentsClientConfiguration context) {
+	public boolean removeAuthority(String path, String id, DocumentOptions options, DocumentsClientContext context) {
 		try {
 			client.removeAuthority(path, id, options, context);
 			return true;
@@ -199,12 +200,12 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 	
 	
 	@Override
-	public void onDocumentUpdate(String path, DocumentsClientConfiguration context) {
+	public void onDocumentUpdate(String path, DocumentsClientContext context) {
 		evictCaches(path);
 	}
 
 	@Override
-	public void onFolderUpdate(String path, DocumentsClientConfiguration context) {
+	public void onFolderUpdate(String path, DocumentsClientContext context) {
 		evictCaches(path);
 	}
 

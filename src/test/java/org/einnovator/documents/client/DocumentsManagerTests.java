@@ -107,14 +107,14 @@ public class DocumentsManagerTests extends SsoTestHelper {
 	@After
 	public void clean() {
 		if (document != null) {
-			manager.delete(document.getPath(), DocumentOptions.FORCE);
+			manager.delete(document.getPath(), DocumentOptions.FORCE, null);
 		}
 	}
 
 	@Test
 	public void writeTest() throws IOException {
 		document = createTempDocument();
-		URI uri = manager.write(document, CONTENT_AND_META);
+		URI uri = manager.write(document, CONTENT_AND_META, null);
 		assertNotNull(uri);
 		System.out.println(uri);
 		assertTrue(uri.toString().contains(document.getName()));
@@ -124,7 +124,7 @@ public class DocumentsManagerTests extends SsoTestHelper {
 	public void writeNullDocumentTest() throws IOException {
 		Document document = new Document();
 		document.setPath("/tmp/test-doc");
-		URI uri = manager.write(document, CONTENT_AND_META);
+		URI uri = manager.write(document, CONTENT_AND_META, null);
 		assertNotNull(uri);
 	}
 
@@ -132,7 +132,7 @@ public class DocumentsManagerTests extends SsoTestHelper {
 	public void writeNullDocumentTest2() throws IOException {
 		Document document = new Document();
 		document.setPath("/tmp/test/emptyfile/testdocument");
-		URI uri = manager.write(document, null);
+		URI uri = manager.write(document, null, null);
 		assertNotNull(uri);
 	}
 
@@ -140,7 +140,7 @@ public class DocumentsManagerTests extends SsoTestHelper {
 	public void writeDocumentOnlyTest() throws IOException {
 		document = new Document();
 		document.setPath("/tmp/doc");
-		URI uri = manager.write(document, null);
+		URI uri = manager.write(document, null, null);
 		assertNotNull(uri);
 	}
 
@@ -159,9 +159,9 @@ public class DocumentsManagerTests extends SsoTestHelper {
 		document.setName("ei-newlogo6-smooth300.png");
 		document.setContentType("image/png");
 		// document.setMeta(new HashMap<String, Object>());
-		URI uri = manager.write(document, null);
+		URI uri = manager.write(document, null, null);
 		assertNotNull(uri);
-		Document document2 = manager.read(uri, null);
+		Document document2 = manager.read(uri, null, null);
 		assertNotNull(document2);
 		assertNotNull(document2.getContent());
 		assertEquals(bytes.length, document2.getContent().length);
@@ -182,11 +182,11 @@ public class DocumentsManagerTests extends SsoTestHelper {
 		document.setName("ei-newlogo6-smooth300.png");
 		document.setContentType("image/png");
 		document.setPath("/public/" + document.getName());
-		URI uri = manager.write(document, PUBLIC);
+		URI uri = manager.write(document, PUBLIC, null);
 
 		assertNotNull(uri);
 		System.out.println(uri);
-		Document document2 = manager.read(uri, CONTENT_AND_META);
+		Document document2 = manager.read(uri, CONTENT_AND_META, null);
 		assertNotNull(document2);
 		assertNotNull(document2.getContent());
 		assertEquals(bytes.length, document2.getContent().length);
@@ -197,16 +197,16 @@ public class DocumentsManagerTests extends SsoTestHelper {
 		document = createTempDocument();
 		String path = "directory/";
 		document.setPath(path);
-		URI uri = manager.write(document, null);
+		URI uri = manager.write(document, null, null);
 		assertNotNull(uri);
-		manager.delete(path + document.getName(), FORCE);
+		manager.delete(path + document.getName(), FORCE, null);
 	}
 
 	@Test
 	public void metaTest() {
 		document = createTempDocument();
-		manager.write(document, null);
-		Document res = manager.read(document.getName(), META_ONLY);
+		manager.write(document, null, null);
+		Document res = manager.read(document.getName(), META_ONLY, null);
 		assertNotNull(res);
 	}
 
@@ -218,25 +218,25 @@ public class DocumentsManagerTests extends SsoTestHelper {
 		doc0.setPath(tmp + doc0.getName());
 		doc1.setPath(tmp + doc1.getName());
 
-		manager.write(doc0, null);
-		manager.write(doc1, null);
+		manager.write(doc0, null, null);
+		manager.write(doc1, null, null);
 
-		List<Document> documents = manager.list(tmp, null, null);
+		List<Document> documents = manager.list(tmp, null, null, null);
 		assertNotNull(documents);
 		for (Document doc: documents) {
 			System.out.println(doc);
 		}
 		assertTrue(documents.size() > 0);
 		System.out.println(document);
-		manager.delete(doc1.getPath(), FORCE);
-		manager.delete(doc1.getPath(), FORCE);
+		manager.delete(doc1.getPath(), FORCE, null);
+		manager.delete(doc1.getPath(), FORCE, null);
 	}
 
 	@Test
 	public void deleteTest() {
 		document = createTempDocument();
-		manager.write(document, null);
-		List<Document> documents = manager.list(TEST_DIR_PATH, null, null);
+		manager.write(document, null, null);
+		List<Document> documents = manager.list(TEST_DIR_PATH, null, null, null);
 		Document foundDoc = null;
 		for (Document doc : documents) {
 			if (doc.getPath().equals(document.getName())) {
@@ -246,9 +246,9 @@ public class DocumentsManagerTests extends SsoTestHelper {
 
 		}
 		assertNotNull(foundDoc);
-		manager.delete(document.getName(), FORCE);
+		manager.delete(document.getName(), FORCE, null);
 
-		documents = manager.list(TEST_DIR_PATH, null, null);
+		documents = manager.list(TEST_DIR_PATH, null, null, null);
 		foundDoc = null;
 		for (Document doc : documents) {
 			if (doc.getPath().equals(document.getName())) {
@@ -263,20 +263,20 @@ public class DocumentsManagerTests extends SsoTestHelper {
 	public void deletePublicTest() {
 		// Doc creation
 		document = createTempDocument();
-		URI location = manager.write(document, null);
+		URI location = manager.write(document, null, null);
 		System.out.println("LOCATION: " + location);
-		Document document = manager.read(location, META_ONLY);
-		Document alias = manager.read(PUBLIC_DIR_PATH + document.getName(), META_ONLY);
+		Document document = manager.read(location, META_ONLY, null);
+		Document alias = manager.read(PUBLIC_DIR_PATH + document.getName(), META_ONLY, null);
 		assertNotNull(document);
 		//assertTrue(alias.getReference().contains(document.getPath())); //TODO
 		System.out.println("CREATED DOC PUBLIC PASSED");
 		// Move doc to trash
-		manager.delete(document.getName(), FORCE);
+		manager.delete(document.getName(), FORCE, null);
 
-		List<Document> documents = manager.list(TRASH_DIR_PATH, null, null);
+		List<Document> documents = manager.list(TRASH_DIR_PATH, null, null, null);
 		System.out.println("TRASH: " + documents);
 		Document foundDoc = null;
-		alias = manager.read(PUBLIC_DIR_PATH + document.getName(), META_ONLY);
+		alias = manager.read(PUBLIC_DIR_PATH + document.getName(), META_ONLY, null);
 		System.out.println("PUBLIC: " + alias);
 		for (Document doc : documents) {
 			if (doc.getPath().equals(TRASH_DIR_PATH + "" + document.getName())) {
@@ -291,18 +291,18 @@ public class DocumentsManagerTests extends SsoTestHelper {
 		// alias.getMeta().get("reference").toString().contains(TRASH_DIR_PATH));
 
 		// Restore doc
-		manager.restore(TRASH_DIR_PATH + document.getName(), null);
-		document = manager.read(document.getName(), META_ONLY);
-		alias = manager.read(PUBLIC_DIR_PATH + document.getName(), META_ONLY);
+		manager.restore(TRASH_DIR_PATH + document.getName(), null, null);
+		document = manager.read(document.getName(), META_ONLY, null);
+		alias = manager.read(PUBLIC_DIR_PATH + document.getName(), META_ONLY, null);
 		assertNotNull(document);
 		//assertTrue(alias.getReference().contains(document2.getName())); //TODO
 
 		// Delete doc
-		manager.delete(document.getName(), FORCE);
+		manager.delete(document.getName(), FORCE, null);
 		
 
-		document = manager.read(location, META_ONLY);
-		alias = manager.read(PUBLIC_DIR_PATH, META_ONLY);
+		document = manager.read(location, META_ONLY, null);
+		alias = manager.read(PUBLIC_DIR_PATH, META_ONLY, null);
 
 		assertNull(document);
 		assertNull(alias);
@@ -313,8 +313,8 @@ public class DocumentsManagerTests extends SsoTestHelper {
 		document = createTempDocument();
 		String folder = "abc/";
 		document.setPath(tmp + folder);
-		manager.write(document, null);
-		List<Document> documents = manager.list(tmp, null, null);
+		manager.write(document, null, null);
+		List<Document> documents = manager.list(tmp, null, null, null);
 		Document foundDoc = null;
 		Document foundFolder = null;
 		for (Document doc : documents) {
@@ -325,7 +325,7 @@ public class DocumentsManagerTests extends SsoTestHelper {
 
 		}
 		documents = null;
-		documents = manager.list(folder, null, null);
+		documents = manager.list(folder, null, null, null);
 		for (Document doc : documents) {
 			if (doc.getPath().equals(folder + document.getName())) {
 				foundDoc = doc;
@@ -336,10 +336,10 @@ public class DocumentsManagerTests extends SsoTestHelper {
 		assertNotNull(foundDoc);
 		assertNotNull(foundFolder);
 
-		manager.delete(folder, FORCE);
+		manager.delete(folder, FORCE, null);
 
 		documents = null;
-		documents = manager.list(tmp, null, null);
+		documents = manager.list(tmp, null, null, null);
 		foundDoc = null;
 		foundFolder = null;
 		for (Document doc : documents) {
@@ -350,7 +350,7 @@ public class DocumentsManagerTests extends SsoTestHelper {
 
 		}
 		documents = null;
-		documents = manager.list(folder, null, null);
+		documents = manager.list(folder, null, null, null);
 		if (!documents.isEmpty()) {
 			for (Document doc : documents) {
 				if (doc.getPath().equals("abc/" + document.getName())) {
@@ -367,8 +367,8 @@ public class DocumentsManagerTests extends SsoTestHelper {
 	@Test
 	public void moveToTrashAndDeleteTest() {
 		document = createTempDocument();
-		manager.write(document, null);
-		List<Document> documents = manager.list(TEST_DIR_PATH, null, null);
+		manager.write(document, null, null);
+		List<Document> documents = manager.list(TEST_DIR_PATH, null, null, null);
 		Document foundDoc = null;
 		for (Document doc : documents) {
 			if (doc.getPath().equals(document.getName())) {
@@ -378,9 +378,9 @@ public class DocumentsManagerTests extends SsoTestHelper {
 
 		}
 		assertNotNull(foundDoc);
-		manager.delete(document.getName(), FORCE);
+		manager.delete(document.getName(), FORCE, null);
 
-		documents = manager.list(TRASH_DIR_PATH, null, null);
+		documents = manager.list(TRASH_DIR_PATH, null, null, null);
 		foundDoc = null;
 		for (Document doc : documents) {
 			if (doc.getPath().equals(TRASH_DIR_PATH + "" + document.getName())) {
@@ -390,10 +390,10 @@ public class DocumentsManagerTests extends SsoTestHelper {
 		}
 		assertNotNull(foundDoc);
 
-		manager.delete(foundDoc.getPath(), FORCE);
+		manager.delete(foundDoc.getPath(), FORCE, null);
 
 		foundDoc = null;
-		documents = manager.list(TRASH_DIR_PATH, null, null);
+		documents = manager.list(TRASH_DIR_PATH, null, null, null);
 		for (Document doc : documents) {
 			if (doc.getPath().equals(document.getName())) {
 				foundDoc = doc;
@@ -406,16 +406,16 @@ public class DocumentsManagerTests extends SsoTestHelper {
 	@Test
 	public void readTest() {
 		document = createTempDocument();
-		manager.write(document, null);
-		Document document2 = manager.read(document.getName(), CONTENT_AND_META);
+		manager.write(document, null, null);
+		Document document2 = manager.read(document.getName(), CONTENT_AND_META, null);
 		assertNotNull(document2);
 	}
 
 	@Test
 	public void readPublicDocumentTest() {
 		document = createTempDocument();
-		URI location = manager.write(document, CONTENT_AND_META);
-		Document document = manager.read(location, null);
+		URI location = manager.write(document, CONTENT_AND_META, null);
+		Document document = manager.read(location, null, null);
 		assertNotNull(document);
 	}
 
@@ -427,20 +427,20 @@ public class DocumentsManagerTests extends SsoTestHelper {
 		Document attachment1 = createTempDocument("AttachmentB", "AttachmentB");
 
 		document.setAttachments(Arrays.asList(attachment0, attachment1));
-		manager.write(document, null);
-		manager.delete(document.getName(), FORCE);
+		manager.write(document, null, null);
+		manager.delete(document.getName(), FORCE, null);
 
-		Document doc2 = manager.read(TRASH_DIR_PATH + document.getName(), META_ONLY);
+		Document doc2 = manager.read(TRASH_DIR_PATH + document.getName(), META_ONLY, null);
 
 		for (Document doc : doc2.getAttachments()) {
-			Document att = manager.read(doc.getPath(), META_ONLY);
+			Document att = manager.read(doc.getPath(), META_ONLY, null);
 			assertNotNull(att);
 		}
 
-		manager.delete(TRASH_DIR_PATH + document.getName(), FORCE);
+		manager.delete(TRASH_DIR_PATH + document.getName(), FORCE, null);
 
 		for (Document doc : doc2.getAttachments()) {
-			Document att = manager.read(doc.getPath(), META_ONLY);
+			Document att = manager.read(doc.getPath(), META_ONLY, null);
 			assertNull(att);
 		}
 
@@ -453,15 +453,15 @@ public class DocumentsManagerTests extends SsoTestHelper {
 		Document attachment1 = createTempDocument("AttachmentB", "AttachmentB");
 
 		document.setAttachments(Arrays.asList(attachment0, attachment1));
-		manager.write(document, null);
-		manager.delete(document.getName(), FORCE);
+		manager.write(document, null, null);
+		manager.delete(document.getName(), FORCE, null);
 
-		Document doc2 = manager.read(TRASH_DIR_PATH + document.getName(), META_ONLY);
+		Document doc2 = manager.read(TRASH_DIR_PATH + document.getName(), META_ONLY, null);
 
 		assertNull(doc2);
 
 		for (Document doc : document.getAttachments()) {
-			Document att = manager.read(TRASH_DIR_PATH + ATTACHMENT_DIR_PATH + doc.getPath(), META_ONLY);
+			Document att = manager.read(TRASH_DIR_PATH + ATTACHMENT_DIR_PATH + doc.getPath(), META_ONLY, null);
 			assertNull(att);
 		}
 	}
@@ -473,27 +473,27 @@ public class DocumentsManagerTests extends SsoTestHelper {
 		Document attachment1 = createTempDocument("AttachmentB", "AttachmentB");
 
 		document.setAttachments(Arrays.asList(attachment0, attachment1));
-		manager.write(document, null);
+		manager.write(document, null, null);
 
-		manager.delete(document.getName(), FORCE);
+		manager.delete(document.getName(), FORCE, null);
 
-		Document trashDoc = manager.read(TRASH_DIR_PATH + document.getName(), META_ONLY);
+		Document trashDoc = manager.read(TRASH_DIR_PATH + document.getName(), META_ONLY, null);
 
 		for (Document doc : trashDoc.getAttachments()) {
-			Document att = manager.read(doc.getPath(), META_ONLY);
+			Document att = manager.read(doc.getPath(), META_ONLY, null);
 			assertNotNull(att);
 		}
 
-		manager.restore(TRASH_DIR_PATH + document.getName(), null);
-		Document restored = manager.read(document.getName(), META_ONLY);
+		manager.restore(TRASH_DIR_PATH + document.getName(), null, null);
+		Document restored = manager.read(document.getName(), META_ONLY, null);
 
 		for (Document doc : restored.getAttachments()) {
-			Document att = manager.read(TRASH_DIR_PATH + doc.getPath(), META_ONLY);
+			Document att = manager.read(TRASH_DIR_PATH + doc.getPath(), META_ONLY, null);
 			assertNull(att);
 		}
 
 		for (Document doc : restored.getAttachments()) {
-			Document att = manager.read(doc.getPath(), META_ONLY);
+			Document att = manager.read(doc.getPath(), META_ONLY, null);
 			assertNotNull(att);
 		}
 
@@ -502,21 +502,21 @@ public class DocumentsManagerTests extends SsoTestHelper {
 	@Test
 	public void unauthorizedAccess() throws URISyntaxException {
 		document = createTempDocument();
-		manager.write(document, null);
-		Document doc = manager.read(document.getName(), META_ONLY);
+		manager.write(document, null, null);
+		Document doc = manager.read(document.getName(), META_ONLY, null);
 		String uri = doc.getUri().replaceAll("/_/", "/_/" + "~" + TEST_USER + "/");
 		System.out.println("URI: " + uri);
 
 		setPrincipal(NON_AUTHORIZED_SHARE_USER, TEST_PASSWORD);
-		assertNull(manager.read(new URI(uri),new DocumentOptions(META_ONLY).username(NON_AUTHORIZED_SHARE_USER)));
+		assertNull(manager.read(new URI(uri),new DocumentOptions(META_ONLY).username(NON_AUTHORIZED_SHARE_USER), null));
 	}
 
 	@Test
 	public void deleteFileWithSpaces() throws URISyntaxException {
 		document = createTempDocument("Filename with spaces", "TEST CONTENT");
-		manager.write(document, null);
-		manager.delete(document.getName(), FORCE);
-		assertNull(manager.read(document.getName(), META_ONLY));
+		manager.write(document, null, null);
+		manager.delete(document.getName(), FORCE, null);
+		assertNull(manager.read(document.getName(), META_ONLY, null));
 	}
 
 	@Test
@@ -527,8 +527,8 @@ public class DocumentsManagerTests extends SsoTestHelper {
 		attributes.put("TEST ATTRIBUTE", "testValue2");
 		attributes.put("TEST ATTRIBUTE2", "test Value2");
 		document.setAttributes(attributes);
-		manager.write(document, null);
-		Document storedDoc = manager.read(document.getPath(), META_ONLY);
+		manager.write(document, null, null);
+		Document storedDoc = manager.read(document.getPath(), META_ONLY, null);
 		System.out.println("ATTRIBUTES: " + storedDoc.getAttributes());
 		assertEquals("testValue", storedDoc.getAttributes().get("TESTATTRIBUTE"));
 		assertEquals("testValue2", storedDoc.getAttributes().get("TEST ATTRIBUTE"));
@@ -537,47 +537,47 @@ public class DocumentsManagerTests extends SsoTestHelper {
 
 	@Test
 	public void mkdir() {
-		URI location = manager.mkdir(tmp+"folder-"+ UUID.randomUUID(), null);
-		Document folder = manager.read("folder/", null);
+		URI location = manager.mkdir(tmp+"folder-"+ UUID.randomUUID(), null, null);
+		Document folder = manager.read("folder/", null, null);
 		assertTrue(folder.isFolder());
-		folder = manager.read(location, META_ONLY);
+		folder = manager.read(location, META_ONLY, null);
 		assertTrue(folder.isFolder());
-		manager.delete("folder/", FORCE);
+		manager.delete("folder/", FORCE, null);
 	}
 
 	@Test
 	public void createSubFolder() {
-		manager.mkdir("folder", null);
-		URI location = manager.mkdir("folder/subdir", null);
-		Document folder = manager.read(location, DocumentOptions.META_ONLY);
+		manager.mkdir("folder", null, null);
+		URI location = manager.mkdir("folder/subdir", null, null);
+		Document folder = manager.read(location, DocumentOptions.META_ONLY, null);
 		assertTrue(folder.isFolder());
-		manager.delete("folder/subdir/", null);
-		manager.delete("folder/", null);
-		folder = manager.read(location, META_ONLY);
+		manager.delete("folder/subdir/", null, null);
+		manager.delete("folder/", null, null);
+		folder = manager.read(location, META_ONLY, null);
 		assertNull(folder);
 	}
 
 	@Test
 	public void deleteSubFolderWithSpaces() throws URISyntaxException {
-		manager.mkdir("folder", null);
-		URI location = manager.mkdir("folder/subdir with spaces", null);
+		manager.mkdir("folder", null, null);
+		URI location = manager.mkdir("folder/subdir with spaces", null, null);
 		location = new URI(location.toString().replaceAll("9595", "9596"));
-		Document folder = manager.read(location, DocumentOptions.META_ONLY);
+		Document folder = manager.read(location, DocumentOptions.META_ONLY, null);
 		assertTrue(folder.isFolder());
-		manager.delete("folder/subdir with spaces/", DocumentOptions.FORCE);
-		manager.delete("folder/", DocumentOptions.FORCE);
-		folder = manager.read(location, DocumentOptions.META_ONLY);
+		manager.delete("folder/subdir with spaces/", DocumentOptions.FORCE, null);
+		manager.delete("folder/", DocumentOptions.FORCE, null);
+		folder = manager.read(location, DocumentOptions.META_ONLY, null);
 		assertNull(folder);
 	}
 
 	@Test
 	public void copyTest() {
 		document = createTempDocument();
-		manager.write(document, null);
-		URI newLocation = manager.copy(document.getPath(), document.getPath()+"-Copy", null);
-		Document doc2 = manager.read(newLocation, META_ONLY);
+		manager.write(document, null, null);
+		URI newLocation = manager.copy(document.getPath(), document.getPath()+"-Copy", null, null);
+		Document doc2 = manager.read(newLocation, META_ONLY, null);
 		assertNotNull(doc2);
-		manager.delete(doc2.getPath(), FORCE);
+		manager.delete(doc2.getPath(), FORCE, null);
 	}
 
 	@Test
@@ -587,41 +587,41 @@ public class DocumentsManagerTests extends SsoTestHelper {
 		Document attachment1 = createTempDocument("AttachmentB", "AttachmentB");
 
 		document.setAttachments(Arrays.asList(attachment0, attachment1));
-		manager.write(document, null);
-		URI uri2 = manager.copy(document.getPath(), document.getPath() + "-copy", null);
-		Document doc2 = manager.read(uri2, null);
+		manager.write(document, null, null);
+		URI uri2 = manager.copy(document.getPath(), document.getPath() + "-copy", null, null);
+		Document doc2 = manager.read(uri2, null, null);
 		assertNotNull(doc2);
 		for (Document att : doc2.getAttachments()) {
-			assertNotNull(manager.read(att.getPath(), null));
+			assertNotNull(manager.read(att.getPath(), null, null));
 		}
-		manager.delete(doc2.getPath(), DocumentOptions.FORCE);
+		manager.delete(doc2.getPath(), DocumentOptions.FORCE, null);
 
 	}
 
 	@Test
 	public void moveTest() {
 		document = createTempDocument();
-		manager.write(document, DocumentOptions.META_ONLY);
+		manager.write(document, DocumentOptions.META_ONLY, null);
 		System.out.println("UPLOADED");
-		URI newLocation = manager.move(document.getName(), "moved/" + document.getName(), DocumentOptions.META_ONLY);
+		URI newLocation = manager.move(document.getName(), "moved/" + document.getName(), DocumentOptions.META_ONLY, null);
 		System.out.println("MOVED TO: " + newLocation);
-		document = manager.read(newLocation, DocumentOptions.META_ONLY);
+		document = manager.read(newLocation, DocumentOptions.META_ONLY, null);
 		assertNotNull(document);
 	}
 
 
 	@Test
 	public void moveDirWithSpaces() {
-		manager.mkdir("folder", null);
-		URI location = manager.mkdir("folder/subdir with spaces", null);
-		Document folder0 = manager.read(location, DocumentOptions.META_ONLY);
-		URI location1 = manager.mkdir("folder/the other dir", null);
-		Document folder1 = manager.read(location1, DocumentOptions.META_ONLY);
-		URI newLocation = manager.move(folder0.getPath(), folder1.getPath() + "moved with name/", null);
-		document = manager.read(newLocation, META_ONLY);
-		manager.delete(document.getPath(), FORCE);
-		manager.delete(folder1.getPath(), FORCE);
-		manager.delete(folder0.getPath() + "/", FORCE);
+		manager.mkdir("folder", null, null);
+		URI location = manager.mkdir("folder/subdir with spaces", null, null);
+		Document folder0 = manager.read(location, DocumentOptions.META_ONLY, null);
+		URI location1 = manager.mkdir("folder/the other dir", null, null);
+		Document folder1 = manager.read(location1, DocumentOptions.META_ONLY, null);
+		URI newLocation = manager.move(folder0.getPath(), folder1.getPath() + "moved with name/", null, null);
+		document = manager.read(newLocation, META_ONLY, null);
+		manager.delete(document.getPath(), FORCE, null);
+		manager.delete(folder1.getPath(), FORCE, null);
+		manager.delete(folder0.getPath() + "/", FORCE, null);
 		assertNotNull(document);
 	}
 }

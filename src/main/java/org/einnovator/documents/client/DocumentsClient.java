@@ -15,6 +15,7 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.einnovator.documents.client.config.DocumentsClientConfiguration;
+import org.einnovator.documents.client.config.DocumentsClientContext;
 import org.einnovator.documents.client.config.DocumentsEndpoints;
 import org.einnovator.documents.client.model.Document;
 import org.einnovator.documents.client.modelx.DocumentFilter;
@@ -74,7 +75,7 @@ public class DocumentsClient {
 	}
 
 
-	public URI write(Document document, DocumentOptions options, DocumentsClientConfiguration context) {
+	public URI write(Document document, DocumentOptions options, DocumentsClientContext context) {
 		try {
 			String path = document.getPath();
 			URI uri = makeURI(DocumentsEndpoints.upload(path, config));
@@ -155,12 +156,12 @@ public class DocumentsClient {
 		return copy;
 	}
 
-	public Document read(String path, DocumentOptions options, DocumentsClientConfiguration context) {
+	public Document read(String path, DocumentOptions options, DocumentsClientContext context) {
 		URI uri = makeURI(DocumentsEndpoints.download(path, config));
 		return read(uri, options, context);
 	}
 
-	public Document read(URI uri, DocumentOptions options, DocumentsClientConfiguration context) {
+	public Document read(URI uri, DocumentOptions options, DocumentsClientContext context) {
 		Document document = null;
 
 		if (DocumentOptions.meta(options)) {
@@ -207,7 +208,7 @@ public class DocumentsClient {
 		return path;
 	}
 
-	public byte[] content(URI uri, DocumentOptions options, String contentType, DocumentsClientConfiguration context) {
+	public byte[] content(URI uri, DocumentOptions options, String contentType, DocumentsClientContext context) {
 		uri = UriUtils.appendQueryParameters(uri, options);
 		HeadersBuilder<?> builder = RequestEntity.get(uri);
 		if (!StringUtils.hasText(contentType)) {
@@ -222,7 +223,7 @@ public class DocumentsClient {
 		return response.getBody();
 	}
 
-	public List<Document> list(String path, DocumentFilter filter, Pageable pageable, DocumentsClientConfiguration context) {
+	public List<Document> list(String path, DocumentFilter filter, Pageable pageable, DocumentsClientContext context) {
 		URI uri = makeURI(DocumentsEndpoints.list(path, config));
 		uri = appendQueryParameters(uri, filter);
 		uri = appendQueryParameters(uri, pageable);
@@ -235,21 +236,21 @@ public class DocumentsClient {
 		return null;
 	}
 
-	public void delete(String path, DocumentOptions options, DocumentsClientConfiguration context) {
+	public void delete(String path, DocumentOptions options, DocumentsClientContext context) {
 		URI uri = makeURI(DocumentsEndpoints.delete(path, config));
 		delete(uri, options, context);
 	}
 
-	public void delete(URI uri, DocumentOptions options, DocumentsClientConfiguration context) {		
+	public void delete(URI uri, DocumentOptions options, DocumentsClientContext context) {		
 		uri = appendQueryParameters(uri, options);
 		restTemplate.delete(uri);
 	}
 
-	public Document restore(URI uri, DocumentOptions options, DocumentsClientConfiguration context) {
+	public Document restore(URI uri, DocumentOptions options, DocumentsClientContext context) {
 		return restore(getPath(uri), options, context);
 	}
 
-	public Document restore(String path, DocumentOptions options, DocumentsClientConfiguration context) {
+	public Document restore(String path, DocumentOptions options, DocumentsClientContext context) {
 		URI uri = makeURI(DocumentsEndpoints.restore(path, config));
 		uri = appendQueryParameters(uri, options);
 		RequestEntity<Void> request = RequestEntity.get(uri).accept(MediaType.APPLICATION_JSON).build();
@@ -257,7 +258,7 @@ public class DocumentsClient {
 		return response.getBody();
 	}
 
-	public URI mkdir(String path, DocumentOptions options, DocumentsClientConfiguration context) {
+	public URI mkdir(String path, DocumentOptions options, DocumentsClientContext context) {
 		URI uri = makeURI(DocumentsEndpoints.folder(path, config));
 		uri = appendQueryParameters(uri, options);
 		RequestEntity<Void> request = RequestEntity.post(uri).accept(MediaType.APPLICATION_JSON).build();
@@ -265,7 +266,7 @@ public class DocumentsClient {
 		return response;
 	}
 
-	public URI copy(String path, String destPath, DocumentOptions options, DocumentsClientConfiguration context) {
+	public URI copy(String path, String destPath, DocumentOptions options, DocumentsClientContext context) {
 		URI uri = makeURI(DocumentsEndpoints.copy(path, config));
 		uri = appendQueryParameters(uri, options);
 		destPath = UriUtils.encode(destPath, DocumentsClientConfiguration.DEFAULT_ENCODING);
@@ -276,7 +277,7 @@ public class DocumentsClient {
 		return response;
 	}
 
-	public URI move(String path, String destPath, DocumentOptions options, DocumentsClientConfiguration context) {
+	public URI move(String path, String destPath, DocumentOptions options, DocumentsClientContext context) {
 		URI uri = makeURI(DocumentsEndpoints.move(path, config));
 		uri = appendQueryParameters(uri, options);
 		destPath = UriUtils.encode(destPath, DocumentsClientConfiguration.DEFAULT_ENCODING);
@@ -286,7 +287,7 @@ public class DocumentsClient {
 	}
 
 
-	public URI addAuthority(String path, Authority authority, DocumentOptions options, DocumentsClientConfiguration context) {
+	public URI addAuthority(String path, Authority authority, DocumentOptions options, DocumentsClientContext context) {
 		URI uri = makeURI(DocumentsEndpoints.authorities(path, config));
 		uri = appendQueryParameters(uri, options);
 		Document document = new Document();
@@ -295,7 +296,7 @@ public class DocumentsClient {
 		return postForLocation(uri, request);
 	}
 
-	public void removeAuthority(String path, String id, DocumentOptions options, DocumentsClientConfiguration context) {
+	public void removeAuthority(String path, String id, DocumentOptions options, DocumentsClientContext context) {
 		URI uri = makeURI(DocumentsEndpoints.authorities(path, config));
 		uri = appendQueryParameter(uri, "id", id);
 

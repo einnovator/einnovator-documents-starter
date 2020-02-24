@@ -114,64 +114,64 @@ public class DocumentsClientTests extends SsoTestHelper {
 		Document document = createTempDocument();
 		System.out.println(config);
 
-		URI uri = client.write(document, null);
+		URI uri = client.write(document, null, null);
 		assertNotNull(uri);
 		System.out.println(uri);
 		assertTrue(uri.toString().contains(document.getPath()));
-		Document document2 = client.read(uri, CONTENT_AND_META);
+		Document document2 = client.read(uri, CONTENT_AND_META, null);
 		assertNotNull(document2);
 		assertNotNull(document2.getContent());
 		assertEquals(document.getContentLength(), document2.getContentLength());
-		client.delete(document.getPath(), DocumentOptions.FORCE);		
+		client.delete(document.getPath(), DocumentOptions.FORCE, null);		
 	}
 
 	@Test
 	public void writrReadPublicDocumentTest() {
 		Document document = createTempDocument();
-		URI location = client.write(document, CONTENT_AND_META);
-		Document document2 = client.read(location, null);
+		URI location = client.write(document, CONTENT_AND_META, null);
+		Document document2 = client.read(location, null, null);
 		assertNotNull(document2);
-		client.delete(document.getPath(), DocumentOptions.FORCE);		
+		client.delete(document.getPath(), DocumentOptions.FORCE, null);		
 	}
 
 	@Test
 	public void writeNullDocumentTest() throws IOException {
 		Document document = new Document();
 		document.setPath(tmp + "/test-doc");
-		URI uri = client.write(document, CONTENT_AND_META);
+		URI uri = client.write(document, CONTENT_AND_META, null);
 		assertNotNull(uri);
-		client.delete(document.getPath(), DocumentOptions.FORCE);		
+		client.delete(document.getPath(), DocumentOptions.FORCE, null);		
 	}
 
 	@Test
 	public void writeNullDocumentTest2() throws IOException {
 		Document document = new Document();
 		document.setPath(tmp + "test/emptyfile/testdocument");
-		URI uri = client.write(document, null);
+		URI uri = client.write(document, null, null);
 		assertNotNull(uri);
-		client.delete(document.getPath(), DocumentOptions.FORCE);		
+		client.delete(document.getPath(), DocumentOptions.FORCE, null);		
 	}
 	
 	@Test
 	public void metaTest() {
 		Document document = createTempDocument();
-		client.write(document, null);
-		Document res = client.read(document.getName(), META_ONLY);
+		client.write(document, null, null);
+		Document res = client.read(document.getName(), META_ONLY, null);
 		assertNotNull(res);
-		client.delete(document.getPath(), DocumentOptions.FORCE);		
+		client.delete(document.getPath(), DocumentOptions.FORCE, null);		
 	}
 
 	@Test
 	public void metaPublicDocumentTest() {
 		Document document = createTempDocument();
-		URI location = client.write(document, FORCE);
-		Document document2 = client.read(location, META_ONLY);
-		Document alias = client.read(PUBLIC_DIR_PATH + document.getName(), META_ONLY);
+		URI location = client.write(document, FORCE, null);
+		Document document2 = client.read(location, META_ONLY, null);
+		Document alias = client.read(PUBLIC_DIR_PATH + document.getName(), META_ONLY, null);
 		assertNotNull(document2);
 		System.out.println(document2.getUri());
 		System.out.println(document2);
 		//assertTrue(alias.getReference().contains(document2.getPath())); //TODO
-		client.delete(document.getPath(), DocumentOptions.FORCE);		
+		client.delete(document.getPath(), DocumentOptions.FORCE, null);		
 	}
 
 
@@ -180,9 +180,9 @@ public class DocumentsClientTests extends SsoTestHelper {
 	public void writeDocumentOnlyTest() throws IOException {
 		Document document = new Document();
 		document.setPath(tmp + "doc");
-		URI uri = client.write(document, null);
+		URI uri = client.write(document, null, null);
 		assertNotNull(uri);
-		client.delete(document.getPath(), DocumentOptions.FORCE);		
+		client.delete(document.getPath(), DocumentOptions.FORCE, null);		
 	}
 
 	@Test
@@ -200,13 +200,13 @@ public class DocumentsClientTests extends SsoTestHelper {
 		document.setPath(tmp + "ei-newlogo6-smooth300.png");
 		document.setContentType("image/png");
 		// document.setMeta(new HashMap<String, Object>());
-		URI uri = client.write(document, null);
+		URI uri = client.write(document, null, null);
 		assertNotNull(uri);
-		Document document2 = client.read(uri, null);
+		Document document2 = client.read(uri, null, null);
 		assertNotNull(document2);
 		assertNotNull(document2.getContent());
 		assertEquals(bytes.length, document2.getContent().length);
-		client.delete(document.getPath(), DocumentOptions.FORCE);		
+		client.delete(document.getPath(), DocumentOptions.FORCE, null);		
 	}
 
 	@Test
@@ -224,15 +224,15 @@ public class DocumentsClientTests extends SsoTestHelper {
 		document.setName(tmp + "ei-newlogo6-smooth300.png");
 		document.setContentType("image/png");
 		document.setPath("/public/" + document.getName());
-		URI uri = client.write(document, PUBLIC);
+		URI uri = client.write(document, PUBLIC, null);
 
 		assertNotNull(uri);
 		System.out.println(uri);
-		Document document2 = client.read(uri, CONTENT_AND_META);
+		Document document2 = client.read(uri, CONTENT_AND_META, null);
 		assertNotNull(document2);
 		assertNotNull(document2.getContent());
 		assertEquals(bytes.length, document2.getContent().length);
-		client.delete(document.getPath(), DocumentOptions.FORCE);		
+		client.delete(document.getPath(), DocumentOptions.FORCE, null);		
 	}
 
 	@Test
@@ -240,10 +240,10 @@ public class DocumentsClientTests extends SsoTestHelper {
 		Document document = createTempDocument();
 		String path = "directory/";
 		document.setPath(path);
-		URI uri = client.write(document, null);
+		URI uri = client.write(document, null, null);
 		assertNotNull(uri);
-		client.delete(path + document.getName(), FORCE);
-		client.delete(document.getPath(), DocumentOptions.FORCE);		
+		client.delete(path + document.getName(), FORCE, null);
+		client.delete(document.getPath(), DocumentOptions.FORCE, null);		
 	}
 
 	@Test
@@ -254,25 +254,25 @@ public class DocumentsClientTests extends SsoTestHelper {
 
 		System.out.println(doc0.getPath());
 		System.out.println(doc1.getPath());
-		assertNotNull(client.write(doc0, null));
-		assertNotNull(client.write(doc1, null));
+		assertNotNull(client.write(doc0, null, null));
+		assertNotNull(client.write(doc1, null, null));
 
-		List<Document> documents = client.list(tmp, null, null);
+		List<Document> documents = client.list(tmp, null, null, null);
 		assertNotNull(documents);
 		for (Document doc: documents) {
 			System.out.println(doc);
 		}
 		assertTrue(documents.size() > 0);
 
-		client.delete(doc0.getPath(), FORCE);
-		client.delete(doc1.getPath(), FORCE);
+		client.delete(doc0.getPath(), FORCE, null);
+		client.delete(doc1.getPath(), FORCE, null);
 	}
 
 	@Test
 	public void deleteTest() {
 		Document document = createTempDocument();
-		client.write(document, null);
-		List<Document> documents = client.list(TEST_DIR_PATH, null, null);
+		client.write(document, null, null);
+		List<Document> documents = client.list(TEST_DIR_PATH, null, null, null);
 		Document foundDoc = null;
 		for (Document doc : documents) {
 			if (doc.getPath().equals(document.getName())) {
@@ -282,9 +282,9 @@ public class DocumentsClientTests extends SsoTestHelper {
 
 		}
 		assertNotNull(foundDoc);
-		client.delete(document.getName(), FORCE);
+		client.delete(document.getName(), FORCE, null);
 
-		documents = client.list(TEST_DIR_PATH, null, null);
+		documents = client.list(TEST_DIR_PATH, null, null, null);
 		foundDoc = null;
 		for (Document doc : documents) {
 			if (doc.getPath().equals(document.getName())) {
@@ -299,17 +299,17 @@ public class DocumentsClientTests extends SsoTestHelper {
 	public void deletePublicTest() {
 		// Doc creation
 		Document document = createTempDocument();
-		URI location = client.write(document, null);
-		Document document2 = client.read(location, META_ONLY);
-		Document alias = client.read(PUBLIC_DIR_PATH + document2.getName(), META_ONLY);
+		URI location = client.write(document, null, null);
+		Document document2 = client.read(location, META_ONLY, null);
+		Document alias = client.read(PUBLIC_DIR_PATH + document2.getName(), META_ONLY, null);
 		assertNotNull(document2);
 		//assertTrue(alias.getReference().contains(document2.getPath())); //TODO
 		// Move doc to trash
-		client.delete(document.getName(), FORCE);
+		client.delete(document.getName(), FORCE, null);
 
-		List<Document> documents = client.list(TRASH_DIR_PATH, null, null);
+		List<Document> documents = client.list(TRASH_DIR_PATH, null, null, null);
 		Document foundDoc = null;
-		alias = client.read(PUBLIC_DIR_PATH + document.getName(), META_ONLY);
+		alias = client.read(PUBLIC_DIR_PATH + document.getName(), META_ONLY, null);
 		for (Document doc : documents) {
 			if (doc.getPath().equals(TRASH_DIR_PATH + "" + document.getName())) {
 				foundDoc = doc;
@@ -322,23 +322,23 @@ public class DocumentsClientTests extends SsoTestHelper {
 		// alias.getMeta().get("reference").toString().contains(TRASH_DIR_PATH));
 
 		// Restore doc
-		client.restore(TRASH_DIR_PATH + document.getName(), null);
-		Document document3 = client.read(document.getName(), META_ONLY);
-		alias = client.read(PUBLIC_DIR_PATH + document3.getName(), META_ONLY);
+		client.restore(TRASH_DIR_PATH + document.getName(), null, null);
+		Document document3 = client.read(document.getName(), META_ONLY, null);
+		alias = client.read(PUBLIC_DIR_PATH + document3.getName(), META_ONLY, null);
 		assertNotNull(document3);
 		//assertTrue(alias.getReference().contains(document.getName())); //TODO
 
 
 		// Delete doc
-		client.delete(document3.getPath(), FORCE);
+		client.delete(document3.getPath(), FORCE, null);
 		
 
-		Document document4 = client.read(location, META_ONLY);
-		alias = client.read(PUBLIC_DIR_PATH, META_ONLY);
+		Document document4 = client.read(location, META_ONLY, null);
+		alias = client.read(PUBLIC_DIR_PATH, META_ONLY, null);
 
 		assertNull(document4);
 		assertNull(alias);
-		client.delete(document.getPath(), DocumentOptions.FORCE);		
+		client.delete(document.getPath(), DocumentOptions.FORCE, null);		
 
 	}
 
@@ -347,8 +347,8 @@ public class DocumentsClientTests extends SsoTestHelper {
 		Document document = createTempDocument();
 		String folder = "abc/";
 		document.setPath(tmp + folder);
-		client.write(document, null);
-		List<Document> documents = client.list(tmp, null, null);
+		client.write(document, null, null);
+		List<Document> documents = client.list(tmp, null, null, null);
 		Document foundDoc = null;
 		Document foundFolder = null;
 		for (Document doc : documents) {
@@ -359,7 +359,7 @@ public class DocumentsClientTests extends SsoTestHelper {
 
 		}
 		documents = null;
-		documents = client.list(folder, null, null);
+		documents = client.list(folder, null, null, null);
 		for (Document doc : documents) {
 			if (doc.getPath().equals(folder + document.getName())) {
 				foundDoc = doc;
@@ -370,10 +370,10 @@ public class DocumentsClientTests extends SsoTestHelper {
 		assertNotNull(foundDoc);
 		assertNotNull(foundFolder);
 
-		client.delete(folder, FORCE);
+		client.delete(folder, FORCE, null);
 
 		documents = null;
-		documents = client.list(tmp, null, null);
+		documents = client.list(tmp, null, null, null);
 		foundDoc = null;
 		foundFolder = null;
 		for (Document doc : documents) {
@@ -384,7 +384,7 @@ public class DocumentsClientTests extends SsoTestHelper {
 
 		}
 		documents = null;
-		documents = client.list(folder, null, null);
+		documents = client.list(folder, null, null, null);
 		if (!documents.isEmpty()) {
 			for (Document doc : documents) {
 				if (doc.getPath().equals("abc/" + document.getName())) {
@@ -401,8 +401,8 @@ public class DocumentsClientTests extends SsoTestHelper {
 	@Test
 	public void moveToTrashAndDeleteTest() {
 		Document document = createTempDocument();
-		client.write(document, null);
-		List<Document> documents = client.list(TEST_DIR_PATH, null, null);
+		client.write(document, null, null);
+		List<Document> documents = client.list(TEST_DIR_PATH, null, null, null);
 		Document foundDoc = null;
 		for (Document doc : documents) {
 			if (doc.getPath().equals(document.getName())) {
@@ -412,9 +412,9 @@ public class DocumentsClientTests extends SsoTestHelper {
 
 		}
 		assertNotNull(foundDoc);
-		client.delete(document.getName(), FORCE);
+		client.delete(document.getName(), FORCE, null);
 
-		documents = client.list(TRASH_DIR_PATH, null, null);
+		documents = client.list(TRASH_DIR_PATH, null, null, null);
 		foundDoc = null;
 		for (Document doc : documents) {
 			if (doc.getPath().equals(TRASH_DIR_PATH + "" + document.getName())) {
@@ -424,10 +424,10 @@ public class DocumentsClientTests extends SsoTestHelper {
 		}
 		assertNotNull(foundDoc);
 
-		client.delete(foundDoc.getPath(), FORCE);
+		client.delete(foundDoc.getPath(), FORCE, null);
 
 		foundDoc = null;
-		documents = client.list(TRASH_DIR_PATH, null, null);
+		documents = client.list(TRASH_DIR_PATH, null, null, null);
 		for (Document doc : documents) {
 			if (doc.getPath().equals(document.getName())) {
 				foundDoc = doc;
@@ -441,27 +441,27 @@ public class DocumentsClientTests extends SsoTestHelper {
 	@Test
 	public void shareTestAsAdim() {
 		Document document = createTempDocument();
-		client.write(document, null);
+		client.write(document, null, null);
 
 
-		Document nullDoc = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER));
+		Document nullDoc = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER), null);
 
 
 		assertNull(nullDoc);
 
 		Authority authority = Authority.user(SHARE_USER, true, true, true);
-		client.addAuthority(document.getPath(), authority, null);
+		client.addAuthority(document.getPath(), authority, null, null);
 
-		Document sharedDoc = client.read(document.getPath(), META_ONLY);
+		Document sharedDoc = client.read(document.getPath(), META_ONLY, null);
 		assertEquals(sharedDoc.getAuthorities().get(0), authority);
 
-		sharedDoc = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER));
+		sharedDoc = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER), null);
 
 		assertNotNull(sharedDoc);
 
-		client.delete(document.getName(), FORCE);
+		client.delete(document.getName(), FORCE, null);
 
-		sharedDoc = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER));
+		sharedDoc = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER), null);
 
 		assertNull(sharedDoc);
 	}
@@ -469,33 +469,33 @@ public class DocumentsClientTests extends SsoTestHelper {
 	@Test
 	public void shareTest() {
 		Document document = createTempDocument();
-		client.write(document, null);
+		client.write(document, null, null);
 
 		Authority authority = Authority.user(SHARE_USER, true, true, true);
 
 		setPrincipal(SHARE_USER, TEST_PASSWORD);
-		Document nullDoc = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER));
+		Document nullDoc = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER), null);
 
 		System.out.println("DOC NULL: " + nullDoc);
 
 		assertNull(nullDoc);
 
 		setPrincipal(TEST_USER, TEST_PASSWORD);
-		client.addAuthority(document.getPath(), authority, null);
+		client.addAuthority(document.getPath(), authority, null, null);
 
-		Document sharedDoc = client.read(document.getName(), META_ONLY);
+		Document sharedDoc = client.read(document.getName(), META_ONLY, null);
 		assertEquals(sharedDoc.getAuthorities().get(0), authority);
 
 		setPrincipal(SHARE_USER, TEST_PASSWORD);
-		sharedDoc = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER));
+		sharedDoc = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER), null);
 
 		assertNotNull(sharedDoc);
 
 		setPrincipal(TEST_USER, TEST_PASSWORD);
-		client.delete(document.getName(), FORCE);
+		client.delete(document.getName(), FORCE, null);
 
 		setPrincipal(SHARE_USER, TEST_PASSWORD);
-		sharedDoc = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER));
+		sharedDoc = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER), null);
 
 		assertNull(sharedDoc);
 	}
@@ -503,20 +503,20 @@ public class DocumentsClientTests extends SsoTestHelper {
 	@Test
 	public void unshareTest() {
 		Document document = createTempDocument();
-		client.write(document, null);
+		client.write(document, null, null);
 
 		Authority authority = Authority.user(SHARE_USER, true, true, true);
 
-		URI uri = client.addAuthority(document.getPath(), authority, null);
+		URI uri = client.addAuthority(document.getPath(), authority, null, null);
 		String authId = UriUtils.extractId(uri);
 		
-		client.removeAuthority(document.getPath(), authId, null);
+		client.removeAuthority(document.getPath(), authId, null, null);
 
 
-		Document sharedDoc = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER));
+		Document sharedDoc = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER), null);
 		assertEquals(null, sharedDoc);
 
-		sharedDoc = client.read(document.getName(), META_ONLY);
+		sharedDoc = client.read(document.getName(), META_ONLY, null);
 		assertFalse(sharedDoc.getAuthorities().contains(authority));
 
 	}
@@ -524,19 +524,19 @@ public class DocumentsClientTests extends SsoTestHelper {
 	@Test
 	public void shareDeleteOriginal() {
 		Document document = createTempDocument();
-		client.write(document, null);
+		client.write(document, null, null);
 
 		Authority authority = Authority.user(SHARE_USER, true, true, true);
 
-		URI uri = client.addAuthority(document.getPath(), authority, null);
+		URI uri = client.addAuthority(document.getPath(), authority, null, null);
 		String authId = UriUtils.extractId(uri);
 
-		Document doc2 = client.read(document.getName(), FORCE);
+		Document doc2 = client.read(document.getName(), FORCE, null);
 		assertTrue(doc2.getAuthorities().contains(authority));
 
-		client.delete(document.getName(), FORCE);
+		client.delete(document.getName(), FORCE, null);
 
-		doc2 = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER));
+		doc2 = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER), null);
 		assertNull(doc2);
 	}
 
@@ -546,9 +546,9 @@ public class DocumentsClientTests extends SsoTestHelper {
 		Authority authority = Authority.user(SHARE_USER, true, true, true);
 		document.addAuthority(authority);
 
-		client.write(document, CONTENT_AND_META);
+		client.write(document, CONTENT_AND_META, null);
 
-		Document document2 = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(CONTENT_AND_META).username(SHARE_USER));
+		Document document2 = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(CONTENT_AND_META).username(SHARE_USER), null);
 
 		assertNotNull(document2);
 	}
@@ -560,12 +560,12 @@ public class DocumentsClientTests extends SsoTestHelper {
 		Document attachment1 = createTempDocument("AttachmentB", "AttachmentB");
 
 		document.setAttachments(Arrays.asList(attachment0, attachment1));
-		client.write(document, null);
+		client.write(document, null, null);
 
-		Document doc2 = client.read(document.getName(), META_ONLY);
+		Document doc2 = client.read(document.getName(), META_ONLY, null);
 		List<Document> attachments = doc2.getAttachments();
 		for (Document att : attachments) {
-			assertNotNull(client.read(att.getPath(), META_ONLY));
+			assertNotNull(client.read(att.getPath(), META_ONLY, null));
 		}
 	}
 
@@ -576,20 +576,20 @@ public class DocumentsClientTests extends SsoTestHelper {
 		Document attachment1 = createTempDocument("AttachmentB", "AttachmentB");
 
 		document.setAttachments(Arrays.asList(attachment0, attachment1));
-		client.write(document, null);
-		client.delete(document.getName(), FORCE);
+		client.write(document, null, null);
+		client.delete(document.getName(), FORCE, null);
 
-		Document doc2 = client.read(TRASH_DIR_PATH + document.getName(), META_ONLY);
+		Document doc2 = client.read(TRASH_DIR_PATH + document.getName(), META_ONLY, null);
 
 		for (Document doc : doc2.getAttachments()) {
-			Document att = client.read(doc.getPath(), META_ONLY);
+			Document att = client.read(doc.getPath(), META_ONLY, null);
 			assertNotNull(att);
 		}
 
-		client.delete(TRASH_DIR_PATH + document.getName(), FORCE);
+		client.delete(TRASH_DIR_PATH + document.getName(), FORCE, null);
 
 		for (Document doc : doc2.getAttachments()) {
-			Document att = client.read(doc.getPath(), META_ONLY);
+			Document att = client.read(doc.getPath(), META_ONLY, null);
 			assertNull(att);
 		}
 
@@ -602,15 +602,15 @@ public class DocumentsClientTests extends SsoTestHelper {
 		Document attachment1 = createTempDocument("AttachmentB", "AttachmentB");
 
 		document.setAttachments(Arrays.asList(attachment0, attachment1));
-		client.write(document, null);
-		client.delete(document.getName(), FORCE);
+		client.write(document, null, null);
+		client.delete(document.getName(), FORCE, null);
 
-		Document doc2 = client.read(TRASH_DIR_PATH + document.getName(), META_ONLY);
+		Document doc2 = client.read(TRASH_DIR_PATH + document.getName(), META_ONLY, null);
 
 		assertNull(doc2);
 
 		for (Document doc : document.getAttachments()) {
-			Document att = client.read(TRASH_DIR_PATH + ATTACHMENT_DIR_PATH + doc.getPath(), META_ONLY);
+			Document att = client.read(TRASH_DIR_PATH + ATTACHMENT_DIR_PATH + doc.getPath(), META_ONLY, null);
 			assertNull(att);
 		}
 	}
@@ -622,27 +622,27 @@ public class DocumentsClientTests extends SsoTestHelper {
 		Document attachment1 = createTempDocument("AttachmentB", "AttachmentB");
 
 		document.setAttachments(Arrays.asList(attachment0, attachment1));
-		client.write(document, null);
+		client.write(document, null, null);
 
-		client.delete(document.getName(), FORCE);
+		client.delete(document.getName(), FORCE, null);
 
-		Document trashDoc = client.read(TRASH_DIR_PATH + document.getName(), META_ONLY);
+		Document trashDoc = client.read(TRASH_DIR_PATH + document.getName(), META_ONLY, null);
 
 		for (Document doc : trashDoc.getAttachments()) {
-			Document att = client.read(doc.getPath(), META_ONLY);
+			Document att = client.read(doc.getPath(), META_ONLY, null);
 			assertNotNull(att);
 		}
 
-		client.restore(TRASH_DIR_PATH + document.getName(), null);
-		Document restored = client.read(document.getName(), META_ONLY);
+		client.restore(TRASH_DIR_PATH + document.getName(), null, null);
+		Document restored = client.read(document.getName(), META_ONLY, null);
 
 		for (Document doc : restored.getAttachments()) {
-			Document att = client.read(TRASH_DIR_PATH + doc.getPath(), META_ONLY);
+			Document att = client.read(TRASH_DIR_PATH + doc.getPath(), META_ONLY, null);
 			assertNull(att);
 		}
 
 		for (Document doc : restored.getAttachments()) {
-			Document att = client.read(doc.getPath(), META_ONLY);
+			Document att = client.read(doc.getPath(), META_ONLY, null);
 			assertNotNull(att);
 		}
 
@@ -656,38 +656,38 @@ public class DocumentsClientTests extends SsoTestHelper {
 
 		document.setAttachments(Arrays.asList(attachment0, attachment1));
 
-		client.write(document, null);
+		client.write(document, null, null);
 
 		Authority authority = Authority.user(SHARE_USER, true, true, true);
 		document.addAuthority(authority);
 		
 		document.addAuthority(authority);
 
-		Document doc2 = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER));
+		Document doc2 = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER), null);
 		for (Document attachment : doc2.getAttachments()) {
 			System.out.println("ATTCH: " + attachment + " URI: " + attachment.getUri());
-			assertNotNull(client.read(new URI(attachment.getUri()), new DocumentOptions(META_ONLY).username(SHARE_USER)));
+			assertNotNull(client.read(new URI(attachment.getUri()), new DocumentOptions(META_ONLY).username(SHARE_USER), null));
 		}
 	}
 
 	@Test
 	public void unauthorizedAccess() throws URISyntaxException {
 		Document document = createTempDocument();
-		client.write(document, null);
-		Document doc = client.read(document.getName(), META_ONLY);
+		client.write(document, null, null);
+		Document doc = client.read(document.getName(), META_ONLY, null);
 		String uri = doc.getUri().replaceAll("/_/", "/_/" + "~" + TEST_USER + "/");
 		System.out.println("URI: " + uri);
 
 		setPrincipal(NON_AUTHORIZED_SHARE_USER, TEST_PASSWORD);
-		assertNull(client.read(new URI(uri),new DocumentOptions(META_ONLY).username(NON_AUTHORIZED_SHARE_USER)));
+		assertNull(client.read(new URI(uri),new DocumentOptions(META_ONLY).username(NON_AUTHORIZED_SHARE_USER), null));
 	}
 
 	@Test
 	public void deleteFileWithSpaces() throws URISyntaxException {
 		Document document = createTempDocument("Filename with spaces", "TEST CONTENT");
-		client.write(document, null);
-		client.delete(document.getName(), FORCE);
-		assertNull(client.read(document.getName(), META_ONLY));
+		client.write(document, null, null);
+		client.delete(document.getName(), FORCE, null);
+		assertNull(client.read(document.getName(), META_ONLY, null));
 	}
 
 	@Test
@@ -698,8 +698,8 @@ public class DocumentsClientTests extends SsoTestHelper {
 		attributes.put("TEST ATTRIBUTE", "testValue2");
 		attributes.put("TEST ATTRIBUTE2", "test Value2");
 		document.setAttributes(attributes);
-		client.write(document, null);
-		Document storedDoc = client.read(document.getPath(), META_ONLY);
+		client.write(document, null, null);
+		Document storedDoc = client.read(document.getPath(), META_ONLY, null);
 		System.out.println("ATTRIBUTES: " + storedDoc.getAttributes());
 		assertEquals("testValue", storedDoc.getAttributes().get("TESTATTRIBUTE"));
 		assertEquals("testValue2", storedDoc.getAttributes().get("TEST ATTRIBUTE"));
@@ -708,47 +708,47 @@ public class DocumentsClientTests extends SsoTestHelper {
 
 	@Test
 	public void mkdir() {
-		URI location = client.mkdir(tmp+"folder-"+ UUID.randomUUID(), null);
-		Document folder = client.read("folder/", null);
+		URI location = client.mkdir(tmp+"folder-"+ UUID.randomUUID(), null, null);
+		Document folder = client.read("folder/", null, null);
 		assertTrue(folder.isFolder());
-		folder = client.read(location, META_ONLY);
+		folder = client.read(location, META_ONLY, null);
 		assertTrue(folder.isFolder());
-		client.delete("folder/", FORCE);
+		client.delete("folder/", FORCE, null);
 	}
 
 	@Test
 	public void createSubFolder() {
-		client.mkdir("folder", null);
-		URI location = client.mkdir("folder/subdir", null);
-		Document folder = client.read(location, DocumentOptions.META_ONLY);
+		client.mkdir("folder", null, null);
+		URI location = client.mkdir("folder/subdir", null, null);
+		Document folder = client.read(location, DocumentOptions.META_ONLY, null);
 		assertTrue(folder.isFolder());
-		client.delete("folder/subdir/", null);
-		client.delete("folder/", null);
-		folder = client.read(location, META_ONLY);
+		client.delete("folder/subdir/", null, null);
+		client.delete("folder/", null, null);
+		folder = client.read(location, META_ONLY, null);
 		assertNull(folder);
 	}
 
 	@Test
 	public void deleteSubFolderWithSpaces() throws URISyntaxException {
-		client.mkdir("folder", null);
-		URI location = client.mkdir("folder/subdir with spaces", null);
+		client.mkdir("folder", null, null);
+		URI location = client.mkdir("folder/subdir with spaces", null, null);
 		location = new URI(location.toString().replaceAll("9595", "9596"));
-		Document folder = client.read(location, DocumentOptions.META_ONLY);
+		Document folder = client.read(location, DocumentOptions.META_ONLY, null);
 		assertTrue(folder.isFolder());
-		client.delete("folder/subdir with spaces/", DocumentOptions.FORCE);
-		client.delete("folder/", DocumentOptions.FORCE);
-		folder = client.read(location, DocumentOptions.META_ONLY);
+		client.delete("folder/subdir with spaces/", DocumentOptions.FORCE, null);
+		client.delete("folder/", DocumentOptions.FORCE, null);
+		folder = client.read(location, DocumentOptions.META_ONLY, null);
 		assertNull(folder);
 	}
 
 	@Test
 	public void copyTest() {
 		Document document = createTempDocument();
-		client.write(document, null);
-		URI newLocation = client.copy(document.getPath(), document.getPath()+"-Copy", null);
-		Document doc2 = client.read(newLocation, META_ONLY);
+		client.write(document, null, null);
+		URI newLocation = client.copy(document.getPath(), document.getPath()+"-Copy", null, null);
+		Document doc2 = client.read(newLocation, META_ONLY, null);
 		assertNotNull(doc2);
-		client.delete(doc2.getPath(), FORCE);
+		client.delete(doc2.getPath(), FORCE, null);
 	}
 
 	@Test
@@ -758,52 +758,52 @@ public class DocumentsClientTests extends SsoTestHelper {
 		Document attachment1 = createTempDocument("AttachmentB", "AttachmentB");
 
 		document.setAttachments(Arrays.asList(attachment0, attachment1));
-		client.write(document, null);
-		URI uri2 = client.copy(document.getPath(), document.getPath() + "-copy", null);
-		Document doc2 = client.read(uri2, null);
+		client.write(document, null, null);
+		URI uri2 = client.copy(document.getPath(), document.getPath() + "-copy", null, null);
+		Document doc2 = client.read(uri2, null, null);
 		assertNotNull(doc2);
 		for (Document att : doc2.getAttachments()) {
-			assertNotNull(client.read(att.getPath(), null));
+			assertNotNull(client.read(att.getPath(), null, null));
 		}
-		client.delete(doc2.getPath(), DocumentOptions.FORCE);
+		client.delete(doc2.getPath(), DocumentOptions.FORCE, null);
 
 	}
 
 	@Test
 	public void moveTest() {
 		Document document = createTempDocument();
-		client.write(document, DocumentOptions.META_ONLY);
+		client.write(document, DocumentOptions.META_ONLY, null);
 		System.out.println("UPLOADED");
-		URI newLocation = client.move(document.getName(), "moved/" + document.getName(), DocumentOptions.META_ONLY);
+		URI newLocation = client.move(document.getName(), "moved/" + document.getName(), DocumentOptions.META_ONLY, null);
 		System.out.println("MOVED TO: " + newLocation);
-		Document document2 = client.read(newLocation, DocumentOptions.META_ONLY);
+		Document document2 = client.read(newLocation, DocumentOptions.META_ONLY, null);
 		assertNotNull(document2);
 	}
 
 	@Test
 	public void movePublicDocTest() {
 		Document document = createTempDocument();
-		client.write(document, null);
-		URI newLocation = client.move(document.getName(), "moved/" + document.getPath(), null);
+		client.write(document, null, null);
+		URI newLocation = client.move(document.getName(), "moved/" + document.getPath(), null, null);
 		String oldDocName = document.getName();
-		Document document2 = client.read(newLocation, DocumentOptions.META_ONLY);
-		Document alias = client.read(PUBLIC_DIR_PATH + oldDocName, META_ONLY);
+		Document document2 = client.read(newLocation, DocumentOptions.META_ONLY, null);
+		Document alias = client.read(PUBLIC_DIR_PATH + oldDocName, META_ONLY, null);
 		assertNotNull(document2);
 		//assertTrue(alias.getReference().contains(document2.getPath())); //TODO
 	}
 
 	@Test
 	public void moveDirWithSpaces() {
-		client.mkdir("folder", null);
-		URI location = client.mkdir("folder/subdir with spaces", null);
-		Document folder0 = client.read(location, DocumentOptions.META_ONLY);
-		URI location1 = client.mkdir("folder/the other dir", null);
-		Document folder1 = client.read(location1, DocumentOptions.META_ONLY);
-		URI newLocation = client.move(folder0.getPath(), folder1.getPath() + "moved with name/", null);
-		Document document = client.read(newLocation, META_ONLY);
-		client.delete(document.getPath(), FORCE);
-		client.delete(folder1.getPath(), FORCE);
-		client.delete(folder0.getPath() + "/", FORCE);
+		client.mkdir("folder", null, null);
+		URI location = client.mkdir("folder/subdir with spaces", null, null);
+		Document folder0 = client.read(location, DocumentOptions.META_ONLY, null);
+		URI location1 = client.mkdir("folder/the other dir", null, null);
+		Document folder1 = client.read(location1, DocumentOptions.META_ONLY, null);
+		URI newLocation = client.move(folder0.getPath(), folder1.getPath() + "moved with name/", null, null);
+		Document document = client.read(newLocation, META_ONLY, null);
+		client.delete(document.getPath(), FORCE, null);
+		client.delete(folder1.getPath(), FORCE, null);
+		client.delete(folder0.getPath() + "/", FORCE, null);
 		assertNotNull(document);
 	}
 
