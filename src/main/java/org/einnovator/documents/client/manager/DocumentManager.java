@@ -4,9 +4,9 @@ import java.net.URI;
 import java.util.List;
 
 import org.einnovator.documents.client.model.Document;
-import org.einnovator.documents.client.model.Permission;
 import org.einnovator.documents.client.modelx.DocumentFilter;
 import org.einnovator.documents.client.modelx.DocumentOptions;
+import org.einnovator.util.security.Authority;
 import org.springframework.cache.Cache;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.data.domain.Pageable;
@@ -131,13 +131,7 @@ public interface DocumentManager {
 	URI move(String path, String destPath, DocumentOptions options);
 
 	
-	
-
-	boolean share(String path, List<Permission> permissions, DocumentOptions options);
-	boolean share(URI uri, List<Permission> permissions, DocumentOptions options);
-	
-	boolean unshare(String path, List<Permission> permissions, DocumentOptions options);
-	boolean unshare(URI uri, List<Permission> permissions, DocumentOptions options);
+	URI addAuthority(String path, Authority authority, DocumentOptions options);
 
 	// Caching
 	

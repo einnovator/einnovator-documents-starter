@@ -1,7 +1,10 @@
 package org.einnovator.documents.client;
 
+import static org.einnovator.documents.client.modelx.DocumentOptions.CONTENT_AND_META;
+import static org.einnovator.documents.client.modelx.DocumentOptions.FORCE;
+import static org.einnovator.documents.client.modelx.DocumentOptions.META_ONLY;
+import static org.einnovator.documents.client.modelx.DocumentOptions.PUBLIC;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -18,6 +21,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.einnovator.documents.client.config.DocumentsClientConfig;
+import org.einnovator.documents.client.manager.DocumentManager;
+import org.einnovator.documents.client.model.Document;
+import org.einnovator.documents.client.modelx.DocumentOptions;
+import org.einnovator.sso.client.support.SsoTestHelper;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,19 +38,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.StreamUtils;
-import org.einnovator.documents.client.config.DocumentsClientConfig;
-import org.einnovator.documents.client.manager.DocumentManager;
-import org.einnovator.documents.client.model.Document;
-import org.einnovator.documents.client.model.DocumentBuilder;
-import org.einnovator.documents.client.model.Permission;
-import org.einnovator.documents.client.model.PermissionType;
-import org.einnovator.documents.client.modelx.DocumentOptions;
-import org.einnovator.sso.client.support.SsoTestHelper;
-
-import static org.einnovator.documents.client.modelx.DocumentOptions.CONTENT_AND_META;
-import static org.einnovator.documents.client.modelx.DocumentOptions.FORCE;
-import static org.einnovator.documents.client.modelx.DocumentOptions.META_ONLY;
-import static org.einnovator.documents.client.modelx.DocumentOptions.PUBLIC;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = { DocumentsClientConfig.class,
@@ -97,10 +92,10 @@ public class DocumentsManagerTests extends SsoTestHelper {
 			FileOutputStream fos = new FileOutputStream(temp);
 			fos.write(content.getBytes(), 0, content.length());
 			fos.close();
-			Document document = new DocumentBuilder().inputStream(new FileInputStream(temp)).build();
+			Document document = new Document().withInputStream(new FileInputStream(temp));
 			String name = temp.getName();
 			document.setName(name);
-			document.setDescription("Test document description.");
+			document.setInfo("TestInfo.");
 			temp.deleteOnExit();
 			return document;
 		} catch (IOException e) {
@@ -145,7 +140,6 @@ public class DocumentsManagerTests extends SsoTestHelper {
 	public void writeDocumentOnlyTest() throws IOException {
 		document = new Document();
 		document.setPath("/tmp/doc");
-		document.setMeta(new HashMap<String, Object>());
 		URI uri = manager.write(document, null);
 		assertNotNull(uri);
 	}
@@ -217,18 +211,6 @@ public class DocumentsManagerTests extends SsoTestHelper {
 	}
 
 	@Test
-	public void metaPublicDocumentTest() {
-		document = createTempDocument();
-		URI location = manager.write(document, FORCE);
-		Document document = manager.read(location, META_ONLY);
-		Document alias = manager.read(PUBLIC_DIR_PATH + document.getName(), META_ONLY);
-		assertNotNull(document);
-		System.out.println(document.getUri());
-		System.out.println(document);
-		assertTrue(alias.getMeta().get("reference").toString().contains(document.getName()));
-	}
-
-	@Test
 	public void listTest() {
 
 		Document doc0 = createTempDocument();
@@ -236,8 +218,6 @@ public class DocumentsManagerTests extends SsoTestHelper {
 		doc0.setPath(tmp + doc0.getName());
 		doc1.setPath(tmp + doc1.getName());
 
-		System.out.println("NAME1: " + doc0.getName());
-		System.out.println("NAME2: " + doc1.getName() + " " + doc1.getPath());
 		manager.write(doc0, null);
 		manager.write(doc1, null);
 
@@ -288,7 +268,7 @@ public class DocumentsManagerTests extends SsoTestHelper {
 		Document document = manager.read(location, META_ONLY);
 		Document alias = manager.read(PUBLIC_DIR_PATH + document.getName(), META_ONLY);
 		assertNotNull(document);
-		assertTrue(alias.getMeta().get("reference").toString().contains(document.getName()));
+		//assertTrue(alias.getReference().contains(document.getPath())); //TODO
 		System.out.println("CREATED DOC PUBLIC PASSED");
 		// Move doc to trash
 		manager.delete(document.getName(), FORCE);
@@ -315,7 +295,7 @@ public class DocumentsManagerTests extends SsoTestHelper {
 		document = manager.read(document.getName(), META_ONLY);
 		alias = manager.read(PUBLIC_DIR_PATH + document.getName(), META_ONLY);
 		assertNotNull(document);
-		assertTrue(alias.getMeta().get("reference").toString().contains(document.getName()));
+		//assertTrue(alias.getReference().contains(document2.getName())); //TODO
 
 		// Delete doc
 		manager.delete(document.getName(), FORCE);
@@ -439,140 +419,6 @@ public class DocumentsManagerTests extends SsoTestHelper {
 		assertNotNull(document);
 	}
 
-	@Test
-	public void shareTestAsAdim() {
-		document = createTempDocument();
-		manager.write(document, null);
-
-
-		List<Permission> permissions = 	 Permission.make(PermissionType.READ, SHARE_USER);
-
-		Document nullDoc = manager.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER));
-
-		System.out.println("DOC NULL: " + nullDoc);
-
-		assertNull(nullDoc);
-
-		manager.share(document.getPath(), permissions, null);
-
-		Document sharedDoc = manager.read(document.getPath(), META_ONLY);
-		assertEquals(sharedDoc.getPermissions().get(0), permissions.get(0));
-
-		System.out.println("shared document1: " + sharedDoc);
-
-		sharedDoc = manager.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER));
-
-		System.out.println("shared document2: " + sharedDoc);
-		assertNotNull(sharedDoc);
-
-		manager.delete(document.getName(), FORCE);
-
-		sharedDoc = manager.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER));
-
-		System.out.println("shared document3: " + sharedDoc);
-		assertNull(sharedDoc);
-	}
-
-	@Test
-	public void shareTest() {
-		document = createTempDocument();
-		manager.write(document, null);
-
-		List<Permission> permissions = 	 Permission.make(PermissionType.READ, SHARE_USER);
-
-		setPrincipal(SHARE_USER, TEST_PASSWORD);
-		Document nullDoc = manager.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER));
-
-		System.out.println("DOC NULL: " + nullDoc);
-
-		assertNull(nullDoc);
-
-		setPrincipal(TEST_USER, TEST_PASSWORD);
-		manager.share(document.getName(), permissions, null);
-
-		Document sharedDoc = manager.read(document.getName(), META_ONLY);
-		assertEquals(sharedDoc.getPermissions().get(0), permissions.get(0));
-
-		System.out.println("shared document1: " + sharedDoc);
-
-		setPrincipal(SHARE_USER, TEST_PASSWORD);
-		sharedDoc = manager.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER));
-
-		System.out.println("shared document2: " + sharedDoc);
-		assertNotNull(sharedDoc);
-
-		setPrincipal(TEST_USER, TEST_PASSWORD);
-		manager.delete(document.getName(), FORCE);
-
-		setPrincipal(SHARE_USER, TEST_PASSWORD);
-		sharedDoc = manager.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER));
-
-		System.out.println("shared document3: " + sharedDoc);
-		assertNull(sharedDoc);
-	}
-
-	@Test
-	public void unshareTest() {
-		document = createTempDocument();
-		manager.write(document, null);
-
-		List<Permission> permissions = 	 Permission.make(PermissionType.READ, SHARE_USER);
-		manager.share(document.getName(), permissions, null);
-		manager.unshare(document.getName(), permissions, null);
-
-		Document sharedDoc = manager.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER));
-		assertEquals(null, sharedDoc);
-
-		sharedDoc = manager.read(document.getName(), META_ONLY);
-		assertFalse(sharedDoc.getPermissions().contains(permissions.get(0)));
-
-	}
-
-	@Test
-	public void shareDeleteOriginal() {
-		document = createTempDocument();
-		manager.write(document, null);
-
-		List<Permission> permissions = 	 Permission.make(PermissionType.READ, SHARE_USER);
-
-		manager.share(document.getName(), permissions, null);
-
-		Document doc2 = manager.read(document.getName(), FORCE);
-		assertTrue(doc2.getPermissions().contains(permissions.get(0)));
-
-		manager.delete(document.getName(), FORCE);
-
-		doc2 = manager.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER));
-		assertNull(doc2);
-	}
-
-	@Test
-	public void writeWithPermissionsTest() {
-		document = createTempDocument();
-		document.setPermissions(Permission.make(PermissionType.READ, SHARE_USER));
-
-		manager.write(document, CONTENT_AND_META);
-
-		Document document2 = manager.read(SHARE_FOLDER + document.getName(), new DocumentOptions(CONTENT_AND_META).username(SHARE_USER));
-
-		assertNotNull(document2);
-	}
-
-	@Test
-	public void writeAttachmentTest() {
-		document = createTempDocument();
-		Document attachment0 = createTempDocument("AttachmentA", "AttachmentA");
-		Document attachment1 = createTempDocument("AttachmentB", "AttachmentB");
-
-		document.setAttachments(Arrays.asList(attachment0, attachment1));
-		manager.write(document, null);
-
-		Document doc2 = manager.read(document.getName(), META_ONLY);
-		List<Document> attachments = doc2.getAttachments();
-		for (Document att : attachments) {
-			assertNotNull(manager.read(att.getPath(), META_ONLY));
-		}
-	}
 
 	@Test
 	public void moveAttachmentToTrashAndDeleteTest() {
@@ -651,28 +497,6 @@ public class DocumentsManagerTests extends SsoTestHelper {
 			assertNotNull(att);
 		}
 
-	}
-
-	@Test
-	public void accessSharedAttachmentTest() throws URISyntaxException {
-		document = createTempDocument();
-		Document attachment0 = createTempDocument("AttachmentA", "AttachmentA");
-		Document attachment1 = createTempDocument("AttachmentB", "AttachmentB");
-
-		document.setAttachments(Arrays.asList(attachment0, attachment1));
-
-		manager.write(document, null);
-
-		List<Permission> permissions = 	 Permission.make(PermissionType.READ, SHARE_USER);
-		document.setPermissions(permissions);
-
-		manager.share(document.getName(), permissions, null);
-
-		Document doc2 = manager.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER));
-		for (Document attachment : doc2.getAttachments()) {
-			System.out.println("ATTCH: " + attachment + " URI: " + attachment.getUri());
-			assertNotNull(manager.read(new URI(attachment.getUri()), new DocumentOptions(META_ONLY).username(SHARE_USER)));
-		}
 	}
 
 	@Test
@@ -785,21 +609,6 @@ public class DocumentsManagerTests extends SsoTestHelper {
 		assertNotNull(document);
 	}
 
-	@Test
-	public void movePublicDocTest() {
-		document = createTempDocument();
-		manager.write(document, null);
-		System.out.println("UPLOADED");
-		URI newLocation = manager.move(document.getName(), "moved/" + document.getName(), null);
-		System.out.println("MOVED TO: " + newLocation);
-		String oldDocName = document.getName();
-		document = manager.read(newLocation, DocumentOptions.META_ONLY);
-		System.out.println("NEW DOC: " + document);
-		Document alias = manager.read(PUBLIC_DIR_PATH + oldDocName, META_ONLY);
-		System.out.println("ALIAS: " + alias);
-		assertNotNull(document);
-		assertTrue(alias.getMeta().get("reference").toString().contains(document.getName()));
-	}
 
 	@Test
 	public void moveDirWithSpaces() {

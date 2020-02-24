@@ -8,17 +8,24 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.einnovator.documents.client.config.DocumentsConfiguration;
 import org.einnovator.documents.client.config.DocumentsEndpoints;
 import org.einnovator.documents.client.model.Document;
-import org.einnovator.documents.client.model.Permission;
 import org.einnovator.documents.client.modelx.DocumentFilter;
 import org.einnovator.documents.client.modelx.DocumentOptions;
 import org.einnovator.util.UriUtils;
+import org.einnovator.util.security.Authority;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.InputStreamResource;
@@ -33,6 +40,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.client.RestClientException;
 
 /**
@@ -40,6 +49,8 @@ import org.springframework.web.client.RestClientException;
  *
  */
 public class DocumentsClient {
+
+	private final Log logger = LogFactory.getLog(getClass());
 
 	@Autowired
 	private DocumentsConfiguration config;
@@ -143,10 +154,11 @@ public class DocumentsClient {
 		}
 		copy.setAttachments(attachmentsCopy);
 		copy.setAttributes(document.getAttributes());
-		copy.setDescription(document.getDescription());
+		copy.setInfo(document.getInfo());
 		copy.setName(document.getName());
-		copy.setPermissions(document.getPermissions());
+		copy.setAuthorities(document.getAuthorities());
 		copy.setCategory(document.getCategory());
+		copy.setTags(document.getTags());
 		return copy;
 	}
 
@@ -160,7 +172,9 @@ public class DocumentsClient {
 
 		if (DocumentOptions.meta(options)) {
 			URI metaUri = makeMetaUri(uri);
-			System.out.println("read meta:" + uri  + " " + metaUri);
+			if (logger.isTraceEnabled()) {
+				logger.trace(String.format("read meta: %s %s", uri, metaUri));				
+			}
 			UriUtils.appendQueryParameters(metaUri, options);
 			RequestEntity<Void> request = RequestEntity.get(metaUri).accept(MediaType.APPLICATION_JSON).build();
 			ResponseEntity<Document> response = exchange(request, Document.class);			
@@ -277,36 +291,32 @@ public class DocumentsClient {
 	}
 
 
-	public void share(URI uri, List<Permission> permissions, DocumentOptions options) {
-		share(getPath(uri), permissions, options);
-	}
-
-	public void share(String path, List<Permission> permissions, DocumentOptions options) {
-		URI uri = makeURI(DocumentsEndpoints.share(path, config));
+	public URI addAuthority(String path, Authority authority, DocumentOptions options) {
+		URI uri = makeURI(DocumentsEndpoints.authorities(path, config));
 		uri = appendQueryParameters(uri, options);
 		Document document = new Document();
 		document.setPath(path);
-		document.setPermissions(permissions);
-		RequestEntity<Document> request = RequestEntity.put(uri).contentType(MediaType.APPLICATION_JSON).body(document);
-		exchange(request, Void.class);
+		RequestEntity<Authority> request = RequestEntity.post(uri).contentType(MediaType.APPLICATION_JSON).body(authority);
+		return postForLocation(uri, request);
 	}
 
-	public void unshare(URI uri, List<Permission> permissions, DocumentOptions options) {
-		share(getPath(uri), permissions, options);
-	}
+	public void removeAuthority(String path, String id, DocumentOptions options) {
+		URI uri = makeURI(DocumentsEndpoints.authorities(path, config));
+		uri = appendQueryParameter(uri, "id", id);
 
-	public void unshare(String path, List<Permission> permissions, DocumentOptions options) {
-		URI uri = makeURI(DocumentsEndpoints.unshare(path, config));
+		uri = appendQueryParameters(uri, options);
 		Document document = new Document();
 		document.setPath(path);
-		document.setPermissions(permissions);
-		RequestEntity<Document> request = RequestEntity.put(uri).contentType(MediaType.APPLICATION_JSON).body(document);
+		RequestEntity<Void> request = RequestEntity.delete(uri).build();
 		exchange(request, Void.class);
 	}
-
 
 	protected <T> ResponseEntity<T> exchange(RequestEntity<?> request, Class<T> responseType) throws RestClientException {
 		return restTemplate.exchange(request, responseType);
+	}
+
+	protected URI postForLocation(URI url, RequestEntity<?> request) throws RestClientException {
+		return restTemplate.postForLocation(url, request);
 	}
 
 }

@@ -13,7 +13,7 @@ public class ControllerBase extends org.einnovator.util.web.ControllerBase {
 	@Autowired(required=false)
 	private UserTokenProvider tokenProvider;
 	
-	protected boolean isAllowed(Principal principal, boolean admin) {
+	protected boolean can(Principal principal, boolean admin) {
 		if (principal==null) {
 			return false;
 		}
@@ -23,7 +23,7 @@ public class ControllerBase extends org.einnovator.util.web.ControllerBase {
 		return true;
 	}
 
-	protected boolean isAllowed(Principal principal, String owner, String app, String path) {
+	protected boolean can(Principal principal, String owner, String app, String path) {
 		if (principal == null) {
 			return false;
 		}
@@ -37,7 +37,7 @@ public class ControllerBase extends org.einnovator.util.web.ControllerBase {
 		return false;
 	}
 
-	protected boolean isAllowed(Principal principal, String owner) {
+	protected boolean can(Principal principal, String owner) {
 		if (principal == null) {
 			return false;
 		}

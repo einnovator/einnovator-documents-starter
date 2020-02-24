@@ -16,13 +16,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.einnovator.documents.client.config.DocumentsConfiguration;
 import org.einnovator.documents.client.model.Document;
-import org.einnovator.documents.client.model.DocumentBuilder;
-import org.einnovator.documents.client.model.Permission;
 import org.einnovator.documents.client.modelx.DocumentFilter;
 import org.einnovator.documents.client.modelx.DocumentOptions;
 import org.einnovator.util.PathUtil;
-import org.einnovator.util.SecurityUtil;
 import org.einnovator.util.UriUtils;
+import org.einnovator.util.security.Authority;
+import org.einnovator.util.security.SecurityUtil;
 import org.einnovator.util.web.WebUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
@@ -136,7 +135,7 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 			if (Boolean.TRUE.equals(options.getAttachments())) {	
 			}
 
-			return new Document(path, null, inputStream, meta, attrs);
+			return new Document(path, null, inputStream);
 			
 		} catch (IOException | RuntimeException e) {
 			logger.error(String.format("read: %s %s %s",  e, path, options));
@@ -202,13 +201,10 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 				}
 				n++;
 				String fpath = file.getPath().replace("\\", "/"); 
-				Document document = new DocumentBuilder()
-						.name(file.getName())
-						.path(fpath)
-						//.owner(Owner.make(file))
-						//.meta(toMeta(file))
-						//.attributes(toAttributes(file))
-						.build();
+				Document document = new Document()
+						.withName(file.getName())
+						.withPath(fpath)
+						;
 				documents.add(document);
 			}
 			return documents;
@@ -284,7 +280,7 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 			} catch (SecurityException e) {
 				return null;
 			}
-			Document document = Document.makeFolder(path);
+			Document document = Document.makeFolder(path, null);
 			return document!=null ? makeURI(document.getPath()) : null;
 		} catch (RuntimeException e) {
 			logger.error(String.format("mkdir: %s %s %s", e, path, options));
@@ -348,46 +344,14 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 
 
 	@Override
-	public boolean share(String path, List<Permission> permissions, DocumentOptions options) {
+	public URI addAuthority(String path, Authority authority, DocumentOptions options) {
 		try {
-			return false;
+			return null;
 		} catch (RuntimeException e) {
-			logger.error(String.format("share: %s %s %s", e, path, options));
-			return false;
+			logger.error(String.format("share: %s %s %s %s", e, path, authority, options));
+			return null;
 		}
 	}
-
-	@Override
-	public boolean share(URI uri, List<Permission> permissions, DocumentOptions options) {
-		try {
-			return false;
-		} catch (RuntimeException e) {
-			logger.error(String.format("share: %s %s %s", e, uri, options));
-			return false;
-		}
-	}
-
-	@Override
-	public boolean unshare(String path, List<Permission> permissions, DocumentOptions options) {
-		try {
-			return false;
-		} catch (RuntimeException e) {
-			logger.error(String.format("unshare: %s %s %s", e, path, options));
-			return false;
-		}	
-	}
-
-	@Override
-	public boolean unshare(URI uri, List<Permission> permissions, DocumentOptions options) {
-		try {
-			return false;
-		} catch (RuntimeException e) {
-			logger.error(String.format("unshare: %s %s %s", e, uri, options));
-			return false;
-		}	
-	}
-
-
 	
 	
 	@Override

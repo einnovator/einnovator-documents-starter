@@ -58,4 +58,9 @@ public class DocumentsEndpoints {
 		return config.getServer() + PathUtil.concat("/api/_move/", encodePath(path));
 	}
 	
+	public static String authorities(String path, DocumentsConfiguration config) {
+		return config.getServer() + PathUtil.concat("/api/_auth/", encodePath(path));
+	}
+
+	
 }

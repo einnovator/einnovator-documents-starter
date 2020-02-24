@@ -1,5 +1,6 @@
 package org.einnovator.documents.client.model;
 
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -7,16 +8,15 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLConnection;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.einnovator.util.model.ObjectBase;
+import org.einnovator.util.MappingUtils;
 import org.einnovator.util.model.ToStringCreator;
-import org.springframework.format.datetime.DateFormatter;
+import org.einnovator.util.security.SecurityUtil;
 import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,37 +27,19 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown=true)
-public class Document extends ObjectBase {
+public class Document extends ProtectedEntity {
 
 	public static final String DELIMITER = "/";
 
-	public static final String CONTENT_TYPE = "Content-Type";
-	public static final String CONTENT_LENGTH = "Content-Length";
-	public static final String CONTENT_ENCODING = "Content-Encoding";
-	public static final String CONTENT_DISPOSITION = "Content-Disposition";
-	public static final String CONTENT_LANGUAGE = "Content-Language";
-	public static final String CONTENT_MD5 = "Content-MD5";
-	public static final String CONTENT_RANGE = "Content-Range";
-	public static final String LAST_MODIFIED = "Last-Modified";
-	public static final String LAST_ACCESS = "last_access";
-	public static final String CREATION_DATE = "creation_date";
-	public static final String ETAG = "ETag";
-	public static final String CACHE_CONTROL = "Cache-Control";
-	public static final String EXPIRES ="Expires";
-	public static final String STORAGE_CLASS = "Storage-Class";
-	public static final String VERSION_ID = "version_id";	
-	public static final String UUID = "uuid";
 
 
 	private String uri;
 
 	private String path;
-
+	
+	private DocumentType type;
+	
 	private String name;
-
-	private Owner owner;
-
-	private Map<String, Object> meta = new LinkedHashMap<>();
 
 	@JsonIgnore
 	private byte[] content;
@@ -65,12 +47,46 @@ public class Document extends ObjectBase {
 	@JsonIgnore
 	private InputStream inputStream;
 
-	private Boolean folder;
+	private boolean folder;
 
 	private Boolean hidden;
 
-	private List<Permission> permissions;
+	private Boolean system;
 
+	private Boolean head;
+
+	private String version;
+
+	@JsonIgnore
+	private Date versionDate;
+
+	private Long contentLength;
+	
+	private String contentType;
+	
+	private String contentEncoding;
+	
+	private String contentDisposition;
+	
+	private String contentLanguage;
+	
+	private String contentMD5;
+	
+	private Long[] contentRange;
+	
+	private String etag;
+	
+	private String cacheControl;
+	
+	private Long expires;
+	
+	private Date expireDate;
+	
+	@JsonIgnore
+	private String expireDateFormatted;
+	
+	private String storageClass;
+	
 	private Map<String, String> attributes = new LinkedHashMap<>();
 
 	private List<Document> attachments = new ArrayList<>();
@@ -78,66 +94,72 @@ public class Document extends ObjectBase {
 	private List<String> tags = new ArrayList<>();
 
 	private String category;
-
-	private String category2;
-
-	private String description;
-
+	private String info;
 	private String template;
-
 	private String icon;
-
 	private String img;
+
+	private String link;
+
+	private String channelId;
+
 
 	public Document() {
 	}
 
 	public Document(String path) {
-		this.path = path;
+		this(path, null);
 	}
 
-	public Document(String path, Owner owner, Map<String, Object> meta, Map<String, String> attributes) {
+	public Document(String path, String owner) {
 		this.path = path;
 		this.owner = owner;
-		if (meta != null) {
-			this.meta = meta;
-		}
-		if (attributes != null) {
-			this.attributes = attributes;
-		}
 	}
 
-	public Document(String path, Owner owner, byte[] content, Map<String, Object> meta, Map<String, String> attributes) {
-		this(path, owner, meta, attributes);
+	public Document(String path, String owner, byte[] content) {
+		this(path, owner);
 		this.content = content;
 		setOrUpdateSize(false);
 	}
 
-	public Document(String path, Owner owner, InputStream inputStream, Map<String, Object> meta, Map<String, String> attributes) {
-		this(path, owner, meta, attributes);
+	public Document(String path, String owner, InputStream inputStream) {
+		this(path, owner);
 		this.inputStream = inputStream;
 	}
 
-	public Document(String path, Owner owner, long size, InputStream inputStream, Map<String, Object> meta, Map<String, String> attributes) {
-		this(path, owner, inputStream, meta, attributes);
+	public Document(String path, String owner, long size, InputStream inputStream) {
+		this(path, owner, inputStream);
 		setContentLength(size);
 	}
 
+	public Document(String path, String owner, long size, InputStream inputStream, String contentType) {
+		this(path, owner, inputStream);
+		setContentLength(size);
+		setContentType(contentType);
+	}
+	public Document(String path, String owner, byte[] content, String contentType) {
+		this(path, owner, content);
+		setContentType(contentType);
+	}
+	
 	public Document(Document document) {
-		super(document);
-		this.meta = document.getMeta() != null ? new LinkedHashMap<>(document.getMeta()) : null;
+		MappingUtils.updateObjectFrom(this, document);
 		this.attributes = document.getAttributes() != null ? new LinkedHashMap<>(document.getAttributes()) : null;
+	}
+
+	public Document(Object prototype) {
+		super(prototype);
 	}
 
 	/**
 	 * Create instance of {@code Document}.
 	 *
-	 * @param uri
-	 * @param bytes
+	 * @param uri the uri
+	 * @param bytes the content
 	 */
 	public Document(URI uri, byte[] bytes) {
 		setContent(bytes);
-		setContentLength(bytes!=null ? bytes.length : 0);
+		setContentLength(bytes!=null ? bytes.length : 0L);
 		if (uri!=null) {
 			this.uri = uri.toString();			
 		}
@@ -146,69 +168,162 @@ public class Document extends ObjectBase {
 		}
 	}
 
-	public String getPath() {
-		return path;
-	}
 
-	public void setPath(String path) {
-		this.path = path;
-	}
-
-	public Owner getOwner() {
-		return owner;
-	}
-
-	public void setOwner(Owner owner) {
-		this.owner = owner;
-	}
-
-	public Map<String, Object> getMeta() {
-		return meta;
-	}
-
-	public void setMeta(Map<String, Object> meta) {
-		this.meta = meta;
-	}
-
-	public byte[] getContent() {
-		return content;
-	}
-
-	public void setContent(byte[] content) {
-		this.content = content;
-	}
-
+	/**
+	 * Get the value of property {@code inputStream}.
+	 *
+	 * @return the inputStream
+	 */
+	@JsonIgnore
 	public InputStream getInputStream() {
 		return inputStream;
 	}
-
+	
+	/**
+	 * Set the value of property {@code inputStream}.
+	 *
+	 * @param inputStream the value of property inputStream
+	 */
 	public void setInputStream(InputStream inputStream) {
 		this.inputStream = inputStream;
 	}
 
+	
+	/**
+	 * Get the value of property {@code content}.
+	 *
+	 * @return the content
+	 */
+	public byte[] getContent() {
+		return content;
+	}
+
+	/**
+	 * Set the value of property {@code content}.
+	 *
+	 * @param content the value of property content
+	 */
+	public void setContent(byte[] content) {
+		this.content = content;
+	}
+
+
+	/**
+	 * Get the value of property {@code path}.
+	 *
+	 * @return the path
+	 */
+	public String getPath() {
+		return path;
+	}
+
+	/**
+	 * Set the value of property {@code path}.
+	 *
+	 * @param path the value of property path
+	 */
+	public void setPath(String path) {
+		this.path = path;
+	}
+
+	/**
+	 * Get the value of property {@code name}.
+	 *
+	 * @return the name
+	 */
 	public String getName() {
 		return name;
 	}
 
+	/**
+	 * Set the value of property {@code name}.
+	 *
+	 * @param name the value of property name
+	 */
 	public void setName(String name) {
 		this.name = name;
 	}
+
+	/**
+	 * Get the value of property {@code type}.
+	 *
+	 * @return the type
+	 */
+	public DocumentType getType() {
+		return type;
+	}
+
+	/**
+	 * Set the value of property {@code type}.
+	 *
+	 * @param type the value of property type
+	 */
+	public void setType(DocumentType type) {
+		this.type = type;
+	}
+
+	/**
+	 * Get the value of property {@code head}.
+	 *
+	 * @return the head
+	 */
+	public Boolean getHead() {
+		return head;
+	}
+
 	/**
 	 * Get the value of property {@code folder}.
 	 *
 	 * @return the folder
 	 */
-	public Boolean getFolder() {
-		return folder;
+	public boolean isFolder() {
+		return DocumentType.FOLDER==type || folder;
 	}
 
 	/**
 	 * Set the value of property {@code folder}.
 	 *
-	 * @param folder the folder to set
+	 * @param folder the value of property folder
 	 */
-	public void setFolder(Boolean folder) {
+	public void setFolder(boolean folder) {
 		this.folder = folder;
+	}
+
+
+	/**
+	 * Get the value of property {@code version}.
+	 *
+	 * @return the version
+	 */
+	public String getVersion() {
+		return version;
+	}
+
+	/**
+	 * Set the value of property {@code version}.
+	 *
+	 * @param version the value of property version
+	 */
+	public void setVersion(String version) {
+		this.version = version;
+	}
+
+	/**
+	 * Get the value of property {@code versionDate}.
+	 *
+	 * @return the versionDate
+	 */
+	public Date getVersionDate() {
+		return versionDate;
+	}
+
+	/**
+	 * Set the value of property {@code versionDate}.
+	 *
+	 * @param versionDate the value of property versionDate
+	 */
+	public void setVersionDate(Date versionDate) {
+		this.versionDate = versionDate;
 	}
 
 	/**
@@ -223,53 +338,873 @@ public class Document extends ObjectBase {
 	/**
 	 * Set the value of property {@code category}.
 	 *
-	 * @param category the category to set
+	 * @param category the value of property category
 	 */
 	public void setCategory(String category) {
 		this.category = category;
 	}
 
-	/**
-	 * Get the value of property {@code category2}.
-	 *
-	 * @return the category2
-	 */
-	public String getCategory2() {
-		return category2;
-	}
 
 	/**
-	 * Set the value of property {@code category2}.
+	 * Get the value of property {@code attributes}.
 	 *
-	 * @param category2 the category2 to set
+	 * @return the attributes
 	 */
-	public void setCategory2(String category2) {
-		this.category2 = category2;
-	}
-
-	public boolean isFolder() {
-		return folder;
-	}
-
-	public void setFolder(boolean folder) {
-		this.folder = folder;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
 	public Map<String, String> getAttributes() {
 		return attributes;
 	}
 
+	/**
+	 * Set the value of property {@code attributes}.
+	 *
+	 * @param attributes the value of property attributes
+	 */
 	public void setAttributes(Map<String, String> attributes) {
 		this.attributes = attributes;
 	}
+
+	/**
+	 * Get the value of property {@code tags}.
+	 *
+	 * @return the tags
+	 */
+	public List<String> getTags() {
+		return tags;
+	}
+
+	/**
+	 * Set the value of property {@code tags}.
+	 *
+	 * @param tags the value of property tags
+	 */
+	public void setTags(List<String> tags) {
+		this.tags = tags;
+	}
+
+	/**
+	 * Get the value of property {@code info}.
+	 *
+	 * @return the info
+	 */
+	public String getInfo() {
+		return info;
+	}
+
+	/**
+	 * Set the value of property {@code info}.
+	 *
+	 * @param info the value of property info
+	 */
+	public void setInfo(String info) {
+		this.info = info;
+	}
+
+	/**
+	 * Get the value of property {@code contentLength}.
+	 *
+	 * @return the contentLength
+	 */
+	public Long getContentLength() {
+		return contentLength;
+	}
+
+	/**
+	 * Set the value of property {@code contentLength}.
+	 *
+	 * @param contentLength the value of property contentLength
+	 */
+	public void setContentLength(Long contentLength) {
+		this.contentLength = contentLength;
+	}
+
+	/**
+	 * Get the value of property {@code contentType}.
+	 *
+	 * @return the contentType
+	 */
+	public String getContentType() {
+		return contentType;
+	}
+
+	/**
+	 * Set the value of property {@code contentType}.
+	 *
+	 * @param contentType the value of property contentType
+	 */
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
+	}
+
+	
+	/**
+	 * Get the value of property {@code contentEncoding}.
+	 *
+	 * @return the contentEncoding
+	 */
+	public String getContentEncoding() {
+		return contentEncoding;
+	}
+
+	/**
+	 * Set the value of property {@code contentEncoding}.
+	 *
+	 * @param contentEncoding the value of property contentEncoding
+	 */
+	public void setContentEncoding(String contentEncoding) {
+		this.contentEncoding = contentEncoding;
+	}
+
+	/**
+	 * Get the value of property {@code contentDisposition}.
+	 *
+	 * @return the contentDisposition
+	 */
+	public String getContentDisposition() {
+		return contentDisposition;
+	}
+
+	/**
+	 * Set the value of property {@code contentDisposition}.
+	 *
+	 * @param contentDisposition the value of property contentDisposition
+	 */
+	public void setContentDisposition(String contentDisposition) {
+		this.contentDisposition = contentDisposition;
+	}
+
+	/**
+	 * Get the value of property {@code contentLanguage}.
+	 *
+	 * @return the contentLanguage
+	 */
+	public String getContentLanguage() {
+		return contentLanguage;
+	}
+
+	/**
+	 * Set the value of property {@code contentLanguage}.
+	 *
+	 * @param contentLanguage the value of property contentLanguage
+	 */
+	public void setContentLanguage(String contentLanguage) {
+		this.contentLanguage = contentLanguage;
+	}
+
+	/**
+	 * Get the value of property {@code contentMD5}.
+	 *
+	 * @return the contentMD5
+	 */
+	public String getContentMD5() {
+		return contentMD5;
+	}
+
+	/**
+	 * Set the value of property {@code contentMD5}.
+	 *
+	 * @param contentMD5 the value of property contentMD5
+	 */
+	public void setContentMD5(String contentMD5) {
+		this.contentMD5 = contentMD5;
+	}
+
+	/**
+	 * Get the value of property {@code contentRange}.
+	 *
+	 * @return the contentRange
+	 */
+	public Long[] getContentRange() {
+		return contentRange;
+	}
+
+	/**
+	 * Set the value of property {@code contentRange}.
+	 *
+	 * @param contentRange the value of property contentRange
+	 */
+	public void setContentRange(Long[] contentRange) {
+		this.contentRange = contentRange;
+	}
+
+	/**
+	 * Get the value of property {@code etag}.
+	 *
+	 * @return the etag
+	 */
+	public String getETag() {
+		return etag;
+	}
+
+	/**
+	 * Set the value of property {@code etag}.
+	 *
+	 * @param etag the value of property etag
+	 */
+	public void setETag(String etag) {
+		this.etag = etag;
+	}
+
+	/**
+	 * Get the value of property {@code cacheControl}.
+	 *
+	 * @return the cacheControl
+	 */
+	public String getCacheControl() {
+		return cacheControl;
+	}
+
+	/**
+	 * Set the value of property {@code cacheControl}.
+	 *
+	 * @param cacheControl the value of property cacheControl
+	 */
+	public void setCacheControl(String cacheControl) {
+		this.cacheControl = cacheControl;
+	}
+
+	/**
+	 * Get the value of property {@code expires}.
+	 *
+	 * @return the expires
+	 */
+	public Long getExpires() {
+		return expires;
+	}
+
+	/**
+	 * Set the value of property {@code expires}.
+	 *
+	 * @param expires the value of property expires
+	 */
+	public void setExpires(Long expires) {
+		this.expires = expires;
+	}
+
+	/**
+	 * Get the value of property {@code expireDate}.
+	 *
+	 * @return the expireDate
+	 */
+	public Date getExpireDate() {
+		return expireDate;
+	}
+
+	/**
+	 * Set the value of property {@code expireDate}.
+	 *
+	 * @param expireDate the value of property expireDate
+	 */
+	public void setExpireDate(Date expireDate) {
+		this.expireDate = expireDate;
+	}
+
+	/**
+	 * Get the value of property {@code storageClass}.
+	 *
+	 * @return the storageClass
+	 */
+	public String getStorageClass() {
+		return storageClass;
+	}
+
+	/**
+	 * Set the value of property {@code storageClass}.
+	 *
+	 * @param storageClass the value of property storageClass
+	 */
+	public void setStorageClass(String storageClass) {
+		this.storageClass = storageClass;
+	}
+
+	/**
+	 * Get the value of property {@code expireDateFormatted}.
+	 *
+	 * @return the expireDateFormatted
+	 */
+	public String getExpireDateFormatted() {
+		return expireDateFormatted;
+	}
+
+	/**
+	 * Set the value of property {@code expireDateFormatted}.
+	 *
+	 * @param expireDateFormatted the value of property expireDateFormatted
+	 */
+	public void setExpireDateFormatted(String expireDateFormatted) {
+		this.expireDateFormatted = expireDateFormatted;
+	}
+
+	@JsonIgnore
+	public Long size() { // alias
+		return getContentLength();
+	}
+
+	@JsonIgnore
+	public String getFormatedSize() { //alias
+		return getFormatedContentLength();
+	}
+	
+	private void setOrUpdateSize(boolean force) {
+		if (content != null && (force || contentLength==null)) {
+			contentLength = (long)content.length;
+		}
+	}
+
+	@JsonIgnore
+	public String getFormatedContentLength() {
+		Long bytes = size();
+		if (bytes==null) {
+			return null;
+		}
+		int unit = 1000;
+		if (bytes < unit)
+			return bytes + " B";
+		int exp = (int) (Math.log(bytes) / Math.log(unit));
+		String pre = ("kMGTPE").charAt(exp - 1) + "";
+		return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
+	}
+
+	
+	/**
+	 * Get the value of property {@code uri}.
+	 *
+	 * @return the uri
+	 */
+	public String getUri() {
+		return uri;
+	}
+
+	/**
+	 * Set the value of property {@code uri}.
+	 *
+	 * @param uri the value of property uri
+	 */
+	public void setUri(String uri) {
+		this.uri = uri;
+	}
+
+	/**
+	 * Get the value of property {@code hidden}.
+	 *
+	 * @return the hidden
+	 */
+	public Boolean getHidden() {
+		return hidden;
+	}
+
+	/**
+	 * Set the value of property {@code hidden}.
+	 *
+	 * @param hidden the value of property hidden
+	 */
+	public void setHidden(Boolean hidden) {
+		this.hidden = hidden;
+	}
+
+	/**
+	 * Get the value of property {@code system}.
+	 *
+	 * @return the system
+	 */
+	public Boolean getSystem() {
+		return system;
+	}
+
+	/**
+	 * Set the value of property {@code system}.
+	 *
+	 * @param system the value of property system
+	 */
+	public void setSystem(Boolean system) {
+		this.system = system;
+	}
+
+	/**
+	 * Set the value of property {@code head}.
+	 *
+	 * @param head the value of property head
+	 */
+	public void setHead(Boolean head) {
+		this.head = head;
+	}
+
+	/**
+	 * Get the value of property {@code template}.
+	 *
+	 * @return the template
+	 */
+	public String getTemplate() {
+		return template;
+	}
+
+	/**
+	 * Set the value of property {@code template}.
+	 *
+	 * @param template the value of property template
+	 */
+	public void setTemplate(String template) {
+		this.template = template;
+	}
+
+	/**
+	 * Get the value of property {@code icon}.
+	 *
+	 * @return the icon
+	 */
+	public String getIcon() {
+		return icon;
+	}
+
+	/**
+	 * Set the value of property {@code icon}.
+	 *
+	 * @param icon the value of property icon
+	 */
+	public void setIcon(String icon) {
+		this.icon = icon;
+	}
+
+	/**
+	 * Get the value of property {@code link}.
+	 *
+	 * @return the link
+	 */
+	public String getLink() {
+		return link;
+	}
+
+	/**
+	 * Set the value of property {@code link}.
+	 *
+	 * @param link the value of property link
+	 */
+	public void setLink(String link) {
+		this.link = link;
+	}
+
+	/**
+	 * Get the value of property {@code channelId}.
+	 *
+	 * @return the channelId
+	 */
+	public String getChannelId() {
+		return channelId;
+	}
+
+	/**
+	 * Set the value of property {@code channelId}.
+	 *
+	 * @param channelId the value of property channelId
+	 */
+	public void setChannelId(String channelId) {
+		this.channelId = channelId;
+	}
+
+	/**
+	 * Get the value of property {@code img}.
+	 *
+	 * @return the img
+	 */
+	public String getImg() {
+		return img;
+	}
+
+	/**
+	 * Set the value of property {@code img}.
+	 *
+	 * @param img the img to set
+	 */
+	public void setImg(String img) {
+		this.img = img;
+	}
+	
+	
+	// With
+	
+	public Document withInputStream(InputStream inputStream) {
+		this.inputStream = inputStream;
+		return this;
+	}
+
+	/**
+	 * Set the value of property {@code name}.
+	 *
+	 * @param name the value of property name
+	 */
+	public Document withName(String name) {
+		this.name = name;
+		return this;
+	}
+
+	/**
+	 * Set the value of property {@code folder}.
+	 *
+	 * @param folder the value of property folder
+	 */
+	public Document withName(Boolean folder) {
+		this.folder = folder;
+		return this;
+	}
+	
+	/**
+	 * Set the value of property {@code etag}.
+	 *
+	 * @param etag the value of property etag
+	 */
+	public Document withEtag(String etag) {
+		this.etag = etag;
+		return this;
+	}
+
+	
+	/**
+	 * Set the value of property {@code content}.
+	 *
+	 * @param content the value of property content
+	 */
+	public Document withContent(byte[] content) {
+		this.content = content;
+		return this;
+	}
+
+	/**
+	 * Set the value of property {@code category}.
+	 *
+	 * @param category the value of property category
+	 */
+	public Document withCategory(String category) {
+		this.category = category;
+		return this;
+	}
+	
+	/**
+	 * Set the value of property {@code type}.
+	 *
+	 * @param type the value of property type
+	 */
+	public Document withType(DocumentType type) {
+		this.type = type;
+		return this;
+	}
+
+	/**
+	 * Set the value of property {@code path}.
+	 *
+	 * @param path the value of property path
+	 */
+	public Document withPath(String path) {
+		this.path = path;
+		return this;
+	}
+
+	/**
+	 * Set the value of property {@code folder}.
+	 *
+	 * @param folder the value of property folder
+	 */
+	public Document withFolder(Boolean folder) {
+		this.folder = folder;
+		return this;
+	}
+
+	/**
+	 * Set the value of property {@code hidden}.
+	 *
+	 * @param hidden the value of property hidden
+	 */
+	public Document withHidden(boolean hidden) {
+		this.hidden = hidden;
+		return this;
+	}
+
+
+	/**
+	 * Set the value of property {@code version}.
+	 *
+	 * @param version the value of property version
+	 */
+	public Document withVersion(String version) {
+		this.version = version;
+		return this;
+	}
+
+	/**
+	 * Set the value of property {@code versionDate}.
+	 *
+	 * @param versionDate the value of property versionDate
+	 */
+	public Document withVersionDate(Date versionDate) {
+		this.versionDate = versionDate;
+		return this;
+	}
+
+
+	/**
+	 * Set the value of property {@code attributes}.
+	 *
+	 * @param attributes the value of property attributes
+	 */
+	public Document withAttributes(Map<String, String> attributes) {
+		this.attributes = attributes;
+		return this;
+	}
+
+	/**
+	 * Set the value of property {@code tags}.
+	 *
+	 * @param tags the value of property tags
+	 */
+	public Document withTags(List<String> tags) {
+		this.tags = tags;
+		return this;
+	}
+
+	/**
+	 * Set the value of property {@code info}.
+	 *
+	 * @param info the value of property info
+	 */
+	public Document withInfo(String info) {
+		this.info = info;
+		return this;
+	}
+
+	/**
+	 * Set the value of property {@code contentLength}.
+	 *
+	 * @param contentLength the value of property contentLength
+	 */
+	public Document withContentLength(Long contentLength) {
+		this.contentLength = contentLength;
+		return this;
+	}
+
+	/**
+	 * Set the value of property {@code contentType}.
+	 *
+	 * @param contentType the value of property contentType
+	 */
+	public Document withContentType(String contentType) {
+		this.contentType = contentType;
+		return this;
+	}
+
+	/**
+	 * Set the value of property {@code contentEncoding}.
+	 *
+	 * @param contentEncoding the value of property contentEncoding
+	 */
+	public Document withContentEncoding(String contentEncoding) {
+		this.contentEncoding = contentEncoding;
+		return this;
+	}
+
+	/**
+	 * Set the value of property {@code contentDisposition}.
+	 *
+	 * @param contentDisposition the value of property contentDisposition
+	 */
+	public Document withContentDisposition(String contentDisposition) {
+		this.contentDisposition = contentDisposition;
+		return this;
+	}
+
+
+	/**
+	 * Set the value of property {@code contentLanguage}.
+	 *
+	 * @param contentLanguage the value of property contentLanguage
+	 */
+	public Document withContentLanguage(String contentLanguage) {
+		this.contentLanguage = contentLanguage;
+		return this;
+	}
+
+
+	/**
+	 * Set the value of property {@code contentMD5}.
+	 *
+	 * @param contentMD5 the value of property contentMD5
+	 */
+	public Document withContentMD5(String contentMD5) {
+		this.contentMD5 = contentMD5;
+		return this;
+	}
+
+	/**
+	 * Set the value of property {@code contentRange}.
+	 *
+	 * @param contentRange the value of property contentRange
+	 */
+	public Document withContentRange(Long[] contentRange) {
+		this.contentRange = contentRange;
+		return this;
+	}
+
+
+	/**
+	 * Set the value of property {@code etag}.
+	 *
+	 * @param etag the value of property etag
+	 */
+	public Document withETag(String etag) {
+		this.etag = etag;
+		return this;
+	}
+
+	/**
+	 * Set the value of property {@code cacheControl}.
+	 *
+	 * @param cacheControl the value of property cacheControl
+	 */
+	public Document withCacheControl(String cacheControl) {
+		this.cacheControl = cacheControl;
+		return this;
+	}
+
+	/**
+	 * Set the value of property {@code expires}.
+	 *
+	 * @param expires the value of property expires
+	 */
+	public Document withExpires(Long expires) {
+		this.expires = expires;
+		return this;
+	}
+
+	/**
+	 * Set the value of property {@code expireDate}.
+	 *
+	 * @param expireDate the value of property expireDate
+	 */
+	public Document withExpireDate(Date expireDate) {
+		this.expireDate = expireDate;
+		return this;
+	}
+
+	/**
+	 * Set the value of property {@code storageClass}.
+	 *
+	 * @param storageClass the value of property storageClass
+	 */
+	public Document withStorageClass(String storageClass) {
+		this.storageClass = storageClass;
+		return this;
+	}
+
+	/**
+	 * Set the value of property {@code expireDateFormatted}.
+	 *
+	 * @param expireDateFormatted the value of property expireDateFormatted
+	 */
+	public Document withExpireDateFormatted(String expireDateFormatted) {
+		this.expireDateFormatted = expireDateFormatted;
+		return this;
+	}
+
+	/**
+	 * Set the value of property {@code uri}.
+	 *
+	 * @param uri the value of property uri
+	 */
+	public Document withUri(String uri) {
+		this.uri = uri;
+		return this;
+	}
+
+
+	/**
+	 * Set the value of property {@code hidden}.
+	 *
+	 * @param hidden the value of property hidden
+	 */
+	public Document withHidden(Boolean hidden) {
+		this.hidden = hidden;
+		return this;
+	}
+
+
+	/**
+	 * Set the value of property {@code head}.
+	 *
+	 * @param head the value of property head
+	 */
+	public Document withHead(Boolean head) {
+		this.head = head;
+		return this;
+	}
+
+	/**
+	 * Set the value of property {@code template}.
+	 *
+	 * @param template the value of property template
+	 */
+	public Document withTemplate(String template) {
+		this.template = template;
+		return this;
+	}
+
+	/**
+	 * Set the value of property {@code icon}.
+	 *
+	 * @param icon the value of property icon
+	 */
+	public Document withIcon(String icon) {
+		this.icon = icon;
+		return this;
+	}
+
+
+	/**
+	 * Set the value of property {@code link}.
+	 *
+	 * @param link the value of property link
+	 */
+	public Document withLink(String link) {
+		this.link = link;
+		return this;
+	}
+
+	/**
+	 * Set the value of property {@code channelId}.
+	 *
+	 * @param channelId the value of property channelId
+	 */
+	public Document withChannelId(String channelId) {
+		this.channelId = channelId;
+		return this;
+	}
+
+
+	/**
+	 * Set the value of property {@code img}.
+	 *
+	 * @param img the img to with
+	 */
+	public Document withImg(String img) {
+		this.img = img;
+		return this;
+	}
+	
+	/**
+	 * Get the value of property {@code attachments}.
+	 *
+	 * @return the attachments
+	 */
+	public List<Document> getAttachments() {
+		return attachments;
+	}
+
+	/**
+	 * Set the value of property {@code attachments}.
+	 *
+	 * @param attachments the value of property attachments
+	 */
+	public void setAttachments(List<Document> attachments) {
+		this.attachments = attachments;
+	}
+
+	// Attributes
 
 	public void setAttribute(String name, String value) {
 		if (value==null) {
@@ -328,30 +1263,7 @@ public class Document extends ObjectBase {
 		}
 	}
 
-	public List<Document> getAttachments() {
-		return attachments;
-	}
-
-	public void setAttachments(List<Document> attachments) {
-		this.attachments = attachments;
-	}
-
-	public String getTemplate() {
-		return template;
-	}
-
-	public void setTemplate(String template) {
-		this.template = template;
-	}
-
-	public String getUri() {
-		return uri;
-	}
-
-	public void setUri(String uri) {
-		this.uri = uri;
-	}
-
+	
 	public byte[] loadContent() {
 		if (content != null) {
 			return content;
@@ -400,123 +1312,7 @@ public class Document extends ObjectBase {
 		}
 		return inputStream;
 	}
-
-
-	public String getIcon() {
-		return icon;
-	}
-
-	public void setIcon(String icon) {
-		this.icon = icon;
-	}
-
-	public String getImg() {
-		return img;
-	}
-
-	public void setImg(String img) {
-		this.img = img;
-	}
-
-	public List<String> getTags() {
-		return tags;
-	}
-
-	public void setTags(List<String> tags) {
-		this.tags = tags;
-	}
-
-	public Boolean getHidden() {
-		return hidden;
-	}
-
-	public void setHidden(Boolean hidden) {
-		this.hidden = hidden;
-	}
-	public void setPermissions(List<Permission> permissions) {
-		this.permissions = permissions;
-	}
-
-	public List<Permission> getPermissions() {
-		return permissions;
-	}
-
-	public void setContentType(String contentType) {
-		if (meta == null) {
-			meta = new LinkedHashMap<>();
-		}
-		meta.put(CONTENT_TYPE, contentType);
-	}
-
-	@JsonIgnore
-	public String getContentType() {
-		if (meta == null) {
-			return null;
-		}
-		Object contentType = meta.get(CONTENT_TYPE);
-		return contentType != null ? contentType.toString() : null;
-	}
-
-	public void setContentLength(long contentLength) {
-		meta.put(CONTENT_LENGTH, contentLength);
-	}
 	
-
-	@JsonIgnore
-	public long getContentLength() {
-		if (meta != null && meta.containsKey(CONTENT_LENGTH)) {
-			if (meta.get(CONTENT_LENGTH) instanceof Number) {
-				return ((Number) meta.get(CONTENT_LENGTH)).longValue();
-
-			}
-			return Long.parseLong((String) meta.get(CONTENT_LENGTH));
-		}
-		return -1;
-	}
-
-	public static class MetaBuilder {
-		private Map<String, Object> meta = new LinkedHashMap<>();
-
-		public static MetaBuilder meta() {
-			return new MetaBuilder();
-		}
-
-		public MetaBuilder length(String contentLength) {
-			meta.put(CONTENT_LENGTH, contentLength);
-			return this;
-		}
-
-		public MetaBuilder length(Integer contentLength) {
-			return length(contentLength != null ? contentLength.toString() : null);
-
-		}
-
-		public MetaBuilder contentType(String contentType) {
-			meta.put(CONTENT_TYPE, contentType);
-			return this;
-		}
-
-		public MetaBuilder encoding(String contentEncoding) {
-			meta.put(CONTENT_ENCODING, contentEncoding);
-			return this;
-		}
-
-		public MetaBuilder language(String contentLanguage) {
-			meta.put(CONTENT_LANGUAGE, contentLanguage);
-			return this;
-		}
-
-		public Map<String, Object> build() {
-			return meta;
-		}
-
-	}
-
-	private void setOrUpdateSize(boolean force) {
-		if (content != null && (force || !meta.containsKey(CONTENT_LENGTH))) {
-			meta.put(CONTENT_LENGTH, content.length);
-		}
-	}
 
 	public String getExtention() {
 		if (path == null) {
@@ -528,15 +1324,6 @@ public class Document extends ObjectBase {
 		}
 		return path.substring(i + 1);
 	}
-
-	public String getFilename() {
-		if (path==null) {
-			return null;
-		}
-		String[] ss = path.split("/");
-		return ss.length > 0 ? ss[ss.length - 1] : null;
-	}
-
 
 	@JsonIgnore
 	public byte[] getOrReadContent() {
@@ -555,6 +1342,12 @@ public class Document extends ObjectBase {
 	public String getRequiredName() {
 		return getRequiredName(DELIMITER);
 	}
+
+	@JsonIgnore
+	public String getFilename() {
+		return getRequiredName();
+	}
+
 
 	public String getRequiredName(String delimiter) {
 		if (this.name==null) {
@@ -595,114 +1388,76 @@ public class Document extends ObjectBase {
 		return name;
 	}
 
-	public String getContentEncoding() {
-		return meta != null ? (String) meta.get(CONTENT_ENCODING) : null;
-	}
-
-	public String getContentDisposition() {
-		return meta != null ? (String) meta.get(CONTENT_DISPOSITION) : null;
-	}
-
-	public String getContentLanguage() {
-		return meta != null ? (String) meta.get(CONTENT_LANGUAGE) : null;
-	}
-
-	public String getContentMD5() {
-		return meta != null ? (String) meta.get(CONTENT_MD5) : null;
-	}
-
-	public String getContentRange() {
-		return meta != null ? (String) meta.get(CONTENT_RANGE) : null;
-	}
-
-	public Date getLastModified() {
-		return getMetaAsDate(LAST_MODIFIED);
-	}
-
-	public String getETag() {
-		return meta != null ? (String) meta.get(ETAG) : null;
-	}
-
-	public String getCacheControl() {
-		return meta != null ? (String) meta.get(CACHE_CONTROL) : null;
-	}
-
-	@JsonIgnore
-	public Date getMetaAsDate(String path) {
-		if (meta != null && meta.containsKey(path)) {
-			if (meta.get(path) instanceof Date) {
-				return (Date) meta.get(path);
-			}
-			if (meta.get(path) instanceof Long) {
-				return new Date(((Number) meta.get(path)).longValue());
-			}
-			try {
-				return new DateFormatter().parse((String) meta.get(path), null);
-			} catch (ParseException e) {
-				throw new RuntimeException(e);
-			}
-		}
-		return null;
-
-	}
-
-	@JsonIgnore
-	public Date getExpires() {
-		return getMetaAsDate(EXPIRES);
-	}
-
-	@JsonIgnore
-	public String getStorageClass() {
-		return meta != null ? (String) meta.get(STORAGE_CLASS) : null;
-	}
-
 	@Override
 	public ToStringCreator toString0(ToStringCreator creator) {
 		return creator
 			.append("name", name)
 			.append("path", path)
+			.append("uri", uri)
+			.append("folder", folder)
+			.append("hidden", hidden)
+			.append("version", version)
+			.append("versionDate", versionDate)
+			.append("head", head)
 			.append("#content", content != null ? content.length : null)
 			.append("inputStream", inputStream)
 			.append("folder", folder)
 			.append("hidden", hidden)
 			.append("template", template)
-			.append("permissions", permissions)
 			.append("tags", tags)
 			.append("category", category)
-			.append("category2", category2)
-			.append("description", description)
+			.append("info", info)
+			.append("#info", info!=null && !info.isEmpty() ? info.length() : null)
 			.append("attributes", attributes)
 			.append("#attachments", attachments!=null ? attachments.size() : null)
 			.append("icon", icon)
 			.append("img", img);
 	}
 
-	public static Document makeFolder(String path) {
+	public static Document makeFolder(String path, Document document) {
+		if (document==null) {
+			document = new Document();
+		}
+		path = normalizePath(path);
 		if (!path.endsWith(DELIMITER)) {
 			path += DELIMITER;
 		}
-		Document document = new Document(path);
-		document.setFolder(true);
-		document.setContentLength(0);
+		document
+			.withPath(path)
+			.withType(DocumentType.FOLDER)
+			.withContentLength(0L);
 		document.setNameFromPath(DELIMITER);
 		return document;
 	}
+	
+	public static String normalizePath(String path) {
+		if (!StringUtils.hasText(path)) {
+			path = DELIMITER;
+		} else {
+			path = path.trim();
+		}
+		if (!path.startsWith(DELIMITER)) {
+			path = DELIMITER + path;
+		}
+		return path;
+	}
+	
 	
 	public static Document makeDocument(MultipartFile file, String path, Document document) {
 		if (document==null) {
 			document = new Document();
 		}
-		String contentType = getContentType(file);
-		Map<String, Object> meta = Document.MetaBuilder.meta().contentType(contentType).length(Long.toString(file.getSize())).build();
-		document.setPath(path);
-		try {
-			document.setInputStream(file.getInputStream());
-		} catch (IOException e) {
-			return null;
-			
+		if (document.getOwner()==null) {
+			document.withOwner(SecurityUtil.getPrincipalName());
 		}
-		document.setContentLength(file.getSize());
-		document.setMeta(meta);
+		String contentType = getContentType(file);
+		document.withPath(path).withContentType(contentType);
+		try {
+			document.withContentLength(file.getSize());
+			document.inputStream = file.getInputStream();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 		return document;
 	}
 	
