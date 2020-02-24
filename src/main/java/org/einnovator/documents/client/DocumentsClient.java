@@ -8,14 +8,9 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -40,8 +35,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.client.RestClientException;
 
 /**
@@ -81,7 +74,7 @@ public class DocumentsClient {
 	}
 
 
-	public URI write(Document document, DocumentOptions options) {
+	public URI write(Document document, DocumentOptions options, DocumentsClientConfiguration context) {
 		try {
 			String path = document.getPath();
 			URI uri = makeURI(DocumentsEndpoints.upload(path, config));
@@ -162,12 +155,12 @@ public class DocumentsClient {
 		return copy;
 	}
 
-	public Document read(String path, DocumentOptions options) {
+	public Document read(String path, DocumentOptions options, DocumentsClientConfiguration context) {
 		URI uri = makeURI(DocumentsEndpoints.download(path, config));
-		return read(uri, options);
+		return read(uri, options, context);
 	}
 
-	public Document read(URI uri, DocumentOptions options) {
+	public Document read(URI uri, DocumentOptions options, DocumentsClientConfiguration context) {
 		Document document = null;
 
 		if (DocumentOptions.meta(options)) {
@@ -183,7 +176,7 @@ public class DocumentsClient {
 
 		if (DocumentOptions.content(options)) {
 				String contentType = document != null ? document.getContentType() : null;
-				byte[] bytes = content(uri, options, contentType);
+				byte[] bytes = content(uri, options, contentType, context);
 				if (bytes != null) {
 					if (document==null) {
 						document = new Document(uri, bytes);
@@ -214,7 +207,7 @@ public class DocumentsClient {
 		return path;
 	}
 
-	public byte[] content(URI uri, DocumentOptions options, String contentType) {
+	public byte[] content(URI uri, DocumentOptions options, String contentType, DocumentsClientConfiguration context) {
 		uri = UriUtils.appendQueryParameters(uri, options);
 		HeadersBuilder<?> builder = RequestEntity.get(uri);
 		if (!StringUtils.hasText(contentType)) {
@@ -223,11 +216,13 @@ public class DocumentsClient {
 		builder.accept(MediaType.valueOf(contentType));
 		RequestEntity<Void> request = builder.build();
 		ResponseEntity<byte[]> response = exchange(request, byte[].class);
-		System.out.println("content:" + uri + " " + response.getBody().length);
+		if (logger.isDebugEnabled()) {
+			System.out.println("content:" + uri + " " + response.getBody().length);			
+		}
 		return response.getBody();
 	}
 
-	public List<Document> list(String path, DocumentFilter filter, Pageable pageable) {
+	public List<Document> list(String path, DocumentFilter filter, Pageable pageable, DocumentsClientConfiguration context) {
 		URI uri = makeURI(DocumentsEndpoints.list(path, config));
 		uri = appendQueryParameters(uri, filter);
 		uri = appendQueryParameters(uri, pageable);
@@ -240,21 +235,21 @@ public class DocumentsClient {
 		return null;
 	}
 
-	public void delete(String path, DocumentOptions options) {
+	public void delete(String path, DocumentOptions options, DocumentsClientConfiguration context) {
 		URI uri = makeURI(DocumentsEndpoints.delete(path, config));
-		delete(uri, options);
+		delete(uri, options, context);
 	}
 
-	public void delete(URI uri, DocumentOptions options) {		
+	public void delete(URI uri, DocumentOptions options, DocumentsClientConfiguration context) {		
 		uri = appendQueryParameters(uri, options);
 		restTemplate.delete(uri);
 	}
 
-	public Document restore(URI uri, DocumentOptions options) {
-		return restore(getPath(uri), options);
+	public Document restore(URI uri, DocumentOptions options, DocumentsClientConfiguration context) {
+		return restore(getPath(uri), options, context);
 	}
 
-	public Document restore(String path, DocumentOptions options) {
+	public Document restore(String path, DocumentOptions options, DocumentsClientConfiguration context) {
 		URI uri = makeURI(DocumentsEndpoints.restore(path, config));
 		uri = appendQueryParameters(uri, options);
 		RequestEntity<Void> request = RequestEntity.get(uri).accept(MediaType.APPLICATION_JSON).build();
@@ -262,7 +257,7 @@ public class DocumentsClient {
 		return response.getBody();
 	}
 
-	public URI mkdir(String path, DocumentOptions options) {
+	public URI mkdir(String path, DocumentOptions options, DocumentsClientConfiguration context) {
 		URI uri = makeURI(DocumentsEndpoints.folder(path, config));
 		uri = appendQueryParameters(uri, options);
 		RequestEntity<Void> request = RequestEntity.post(uri).accept(MediaType.APPLICATION_JSON).build();
@@ -270,7 +265,7 @@ public class DocumentsClient {
 		return response;
 	}
 
-	public URI copy(String path, String destPath, DocumentOptions options) {
+	public URI copy(String path, String destPath, DocumentOptions options, DocumentsClientConfiguration context) {
 		URI uri = makeURI(DocumentsEndpoints.copy(path, config));
 		uri = appendQueryParameters(uri, options);
 		destPath = UriUtils.encode(destPath, DocumentsClientConfiguration.DEFAULT_ENCODING);
@@ -281,7 +276,7 @@ public class DocumentsClient {
 		return response;
 	}
 
-	public URI move(String path, String destPath, DocumentOptions options) {
+	public URI move(String path, String destPath, DocumentOptions options, DocumentsClientConfiguration context) {
 		URI uri = makeURI(DocumentsEndpoints.move(path, config));
 		uri = appendQueryParameters(uri, options);
 		destPath = UriUtils.encode(destPath, DocumentsClientConfiguration.DEFAULT_ENCODING);
@@ -291,7 +286,7 @@ public class DocumentsClient {
 	}
 
 
-	public URI addAuthority(String path, Authority authority, DocumentOptions options) {
+	public URI addAuthority(String path, Authority authority, DocumentOptions options, DocumentsClientConfiguration context) {
 		URI uri = makeURI(DocumentsEndpoints.authorities(path, config));
 		uri = appendQueryParameters(uri, options);
 		Document document = new Document();
@@ -300,7 +295,7 @@ public class DocumentsClient {
 		return postForLocation(uri, request);
 	}
 
-	public void removeAuthority(String path, String id, DocumentOptions options) {
+	public void removeAuthority(String path, String id, DocumentOptions options, DocumentsClientConfiguration context) {
 		URI uri = makeURI(DocumentsEndpoints.authorities(path, config));
 		uri = appendQueryParameter(uri, "id", id);
 

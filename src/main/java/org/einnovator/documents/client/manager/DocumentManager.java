@@ -3,6 +3,7 @@ package org.einnovator.documents.client.manager;
 import java.net.URI;
 import java.util.List;
 
+import org.einnovator.documents.client.config.DocumentsClientConfiguration;
 import org.einnovator.documents.client.model.Document;
 import org.einnovator.documents.client.modelx.DocumentFilter;
 import org.einnovator.documents.client.modelx.DocumentOptions;
@@ -22,9 +23,10 @@ public interface DocumentManager {
 	 * 
 	 * @param document  a document to be uploaded
 	 * @param options  the {@code DocumentOptions}
+	 * @param context optional {@code DocumentsClientConfiguration context}
 	 * @return the direct URI to the document uploaded
 	 */
-	URI write(Document document, DocumentOptions options);
+	URI write(Document document, DocumentOptions options, DocumentsClientConfiguration context);
 
 	/**
 	 * Read (download) document content, and attributes, and optionally attachments and versions.
@@ -36,9 +38,10 @@ public interface DocumentManager {
 	 * </ul>  
 	 * @param path path of document is tree of principal or specified user
 	 * @param options the {@code DocumentOptions}
+	 * @param context optional {@code DocumentsClientConfiguration context}
 	 * @return the {@code Document}
 	 */
-	Document read(String path, DocumentOptions options);
+	Document read(String path, DocumentOptions options, DocumentsClientConfiguration context);
 
 	/**
 	 * Read (download) document content, and attributes, and optionally attachments and versions.
@@ -49,7 +52,7 @@ public interface DocumentManager {
 	 * @param options the {@code DocumentOptions}
 	 * @return URI the direct URI to the document uploaded
 	 */
-	Document read(URI uri, DocumentOptions options);
+	Document read(URI uri, DocumentOptions options, DocumentsClientConfiguration context);
 
 	/**
 	 * Read (download) document content as byte array.
@@ -60,7 +63,7 @@ public interface DocumentManager {
 	 * @param options the {@code DocumentOptions}
 	 * @return URI the direct {@code URI} to the document uploaded
 	 */
-	byte[] content(URI uri, DocumentOptions options, String contentType);
+	byte[] content(URI uri, DocumentOptions options, String contentType, DocumentsClientConfiguration context);
 
 	
 	/**
@@ -71,7 +74,7 @@ public interface DocumentManager {
 	 * @param pageable a {@code Pageable}
 	 * @return the list of entries in folder as {@code Document}
 	 */
-	List<Document> list(String path, DocumentFilter filter, Pageable pageable);
+	List<Document> list(String path, DocumentFilter filter, Pageable pageable, DocumentsClientConfiguration context);
 
 	/**
 	 * Delete the document or folder in specified path.
@@ -80,7 +83,7 @@ public interface DocumentManager {
 	 * @param options optional {@code DocumentOptions}
 	 * @return true, if operation is successful; false, otherwise.
 	 */
-	boolean delete(String path, DocumentOptions options);
+	boolean delete(String path, DocumentOptions options, DocumentsClientConfiguration context);
 
 	/**
 	 * Delete the document or folder in specified URI.
@@ -89,10 +92,10 @@ public interface DocumentManager {
 	 * @param options optional {@code DocumentOptions}
 	 * @return true, if operation is successful; false, otherwise.
 	 */
-	boolean delete(URI uri, DocumentOptions options);
+	boolean delete(URI uri, DocumentOptions options, DocumentsClientConfiguration context);
 
-	Document restore(String path, DocumentOptions options);
-	Document restore(URI uri, DocumentOptions options);
+	Document restore(String path, DocumentOptions options, DocumentsClientConfiguration context);
+	Document restore(URI uri, DocumentOptions options, DocumentsClientConfiguration context);
 
 
 	/**
@@ -104,7 +107,7 @@ public interface DocumentManager {
 	 * @param options optional {@code DocumentOptions}
 	 * @return URI the {@code URI} of the created {@code Document}
 	 */
-	URI mkdir(String path, DocumentOptions options);
+	URI mkdir(String path, DocumentOptions options, DocumentsClientConfiguration context);
 
 	/**
 	 * Copy file from source path to destination path.
@@ -116,7 +119,7 @@ public interface DocumentManager {
 	 * @param options optional {@code DocumentOptions}
 	 * @return URI the {@code URI} of the created {@code Document}
 	 */
-	URI copy(String path, String destPath, DocumentOptions options);
+	URI copy(String path, String destPath, DocumentOptions options, DocumentsClientConfiguration context);
 
 	/**
 	 * Move file from source path to destination path.
@@ -128,15 +131,16 @@ public interface DocumentManager {
 	 * @param options optional {@code DocumentOptions}
 	 * @return URI the {@code URI} of the created {@code Document}
 	 */
-	URI move(String path, String destPath, DocumentOptions options);
+	URI move(String path, String destPath, DocumentOptions options, DocumentsClientConfiguration context);
 
 	
-	URI addAuthority(String path, Authority authority, DocumentOptions options);
+	URI addAuthority(String path, Authority authority, DocumentOptions options, DocumentsClientConfiguration context);
+	boolean removeAuthority(String path, String id, DocumentOptions options, DocumentsClientConfiguration context);
 
 	// Caching
 	
-	void onFolderUpdate(String path);
-	void onDocumentUpdate(String path);
+	void onFolderUpdate(String path, DocumentsClientConfiguration context);
+	void onDocumentUpdate(String path, DocumentsClientConfiguration context);
 
 	void clearCaches();
 	void clearDocumentCache();

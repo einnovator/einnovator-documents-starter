@@ -132,7 +132,7 @@ public class FileUploadController extends ControllerBase {
 	}
 
 	protected URI uploadResource(Document document, DocumentOptions options) {
-		return manager.write(document, options);
+		return manager.write(document, options, null);
 	}
 
 	private File cropImage(MultipartFile file) {
@@ -253,7 +253,7 @@ public class FileUploadController extends ControllerBase {
 
 	protected URI moveFromTmp(String tmpUri, DocumentOptions options) {
 		try {
-			return manager.move(tmpUri, getPathFromTmpPath(tmpUri), options);
+			return manager.move(tmpUri, getPathFromTmpPath(tmpUri), options, null);
 		} catch (RuntimeException e) {
 			error("moveFromTmp",  tmpUri, e);
 			return UriUtils.makeURI(tmpUri);
