@@ -19,7 +19,7 @@ import javax.validation.Valid;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.einnovator.documents.client.config.DocumentsConfiguration;
+import org.einnovator.documents.client.config.DocumentsClientConfiguration;
 import org.einnovator.documents.client.config.DocumentsEndpoints;
 import org.einnovator.documents.client.model.Document;
 import org.einnovator.documents.client.modelx.DocumentFilter;
@@ -53,7 +53,7 @@ public class DocumentsClient {
 	private final Log logger = LogFactory.getLog(getClass());
 
 	@Autowired
-	private DocumentsConfiguration config;
+	private DocumentsClientConfiguration config;
 
 	@Autowired
 	@Qualifier("documentsRestTemplate")
@@ -63,11 +63,11 @@ public class DocumentsClient {
 	public DocumentsClient() {
 	}
 
-	public DocumentsClient(DocumentsConfiguration config) {
+	public DocumentsClient(DocumentsClientConfiguration config) {
 		this.config = config;
 	}
 
-	public DocumentsClient(OAuth2RestTemplate restTemplate, DocumentsConfiguration config) {
+	public DocumentsClient(OAuth2RestTemplate restTemplate, DocumentsClientConfiguration config) {
 		this.restTemplate = restTemplate;
 		this.config = config;
 	}
@@ -273,7 +273,7 @@ public class DocumentsClient {
 	public URI copy(String path, String destPath, DocumentOptions options) {
 		URI uri = makeURI(DocumentsEndpoints.copy(path, config));
 		uri = appendQueryParameters(uri, options);
-		destPath = UriUtils.encode(destPath, DocumentsConfiguration.DEFAULT_ENCODING);
+		destPath = UriUtils.encode(destPath, DocumentsClientConfiguration.DEFAULT_ENCODING);
 		uri = appendQueryParameter(uri, "path", destPath);
 
 		RequestEntity<Void> request = RequestEntity.post(uri).accept(MediaType.APPLICATION_JSON).build();
@@ -284,7 +284,7 @@ public class DocumentsClient {
 	public URI move(String path, String destPath, DocumentOptions options) {
 		URI uri = makeURI(DocumentsEndpoints.move(path, config));
 		uri = appendQueryParameters(uri, options);
-		destPath = UriUtils.encode(destPath, DocumentsConfiguration.DEFAULT_ENCODING);
+		destPath = UriUtils.encode(destPath, DocumentsClientConfiguration.DEFAULT_ENCODING);
 		uri = appendQueryParameter(uri, "path", destPath);
 		RequestEntity<Void> request = RequestEntity.post(uri).accept(MediaType.APPLICATION_JSON).build();
 		return restTemplate.postForLocation(uri, request);

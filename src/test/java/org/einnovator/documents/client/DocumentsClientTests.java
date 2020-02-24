@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.einnovator.documents.client.config.DocumentsClientConfig;
-import org.einnovator.documents.client.config.DocumentsConfiguration;
+import org.einnovator.documents.client.config.DocumentsClientConfiguration;
 import org.einnovator.documents.client.model.Document;
 import org.einnovator.documents.client.modelx.DocumentOptions;
 import org.einnovator.sso.client.support.SsoTestHelper;
@@ -74,7 +74,7 @@ public class DocumentsClientTests extends SsoTestHelper {
 	private String tmp = "/tmp/";
 	
 	@Autowired
-	private DocumentsConfiguration config;
+	private DocumentsClientConfiguration config;
 	
 	@Configuration
 	static class TestConfig extends SsoTestHelper.TestConfig {

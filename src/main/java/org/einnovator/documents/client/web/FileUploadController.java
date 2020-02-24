@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.einnovator.documents.client.config.DocumentsConfiguration;
+import org.einnovator.documents.client.config.DocumentsClientConfiguration;
 import org.einnovator.documents.client.config.FilesConfiguration;
 import org.einnovator.documents.client.manager.DocumentManager;
 import org.einnovator.documents.client.model.Document;
@@ -40,7 +40,7 @@ public class FileUploadController extends ControllerBase {
 	protected DocumentManager manager;
 
 	@Autowired
-	protected DocumentsConfiguration config;
+	protected DocumentsClientConfiguration config;
 	
 
 	/**

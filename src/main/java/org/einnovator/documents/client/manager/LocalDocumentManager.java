@@ -14,7 +14,7 @@ import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.einnovator.documents.client.config.DocumentsConfiguration;
+import org.einnovator.documents.client.config.DocumentsClientConfiguration;
 import org.einnovator.documents.client.model.Document;
 import org.einnovator.documents.client.modelx.DocumentFilter;
 import org.einnovator.documents.client.modelx.DocumentOptions;
@@ -39,7 +39,7 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 	private final Log logger = LogFactory.getLog(getClass());
 
 	@Autowired
-	private DocumentsConfiguration config;
+	private DocumentsClientConfiguration config;
 	
 	private CacheManager cacheManager;
 	

@@ -7,7 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 @ConfigurationProperties("documents")
-public class DocumentsConfiguration extends ObjectBase {
+public class DocumentsClientConfiguration extends ObjectBase {
 
 	public final static String DEFAULT_ENCODING = "UTF-8";
 
@@ -28,7 +28,7 @@ public class DocumentsConfiguration extends ObjectBase {
 	
 	private String localRoot = DEFAULT_LOCAL_ROOT;
 	
-	public DocumentsConfiguration() {
+	public DocumentsClientConfiguration() {
 	}
 
 	/**

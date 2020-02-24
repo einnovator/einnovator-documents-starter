@@ -20,13 +20,13 @@ import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResour
 
 
 @Configuration
-@EnableConfigurationProperties(DocumentsConfiguration.class)
+@EnableConfigurationProperties(DocumentsClientConfiguration.class)
 public class DocumentsClientConfig {
 
 	public static final String LOCALFS = "localfs";
 	
 	@Autowired
-	private DocumentsConfiguration config;
+	private DocumentsClientConfiguration config;
 	
 	@Autowired
 	private OAuth2ClientContext oauth2ClientContext;
@@ -38,7 +38,7 @@ public class DocumentsClientConfig {
 	public DocumentsClientConfig() {
 	}
 
-	public DocumentsClientConfig(DocumentsConfiguration config) {
+	public DocumentsClientConfig(DocumentsClientConfiguration config) {
 		this.config = config;
 	}
 
