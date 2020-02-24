@@ -22,6 +22,8 @@ import org.einnovator.documents.client.modelx.DocumentFilter;
 import org.einnovator.documents.client.modelx.DocumentOptions;
 import org.einnovator.util.UriUtils;
 import org.einnovator.util.security.Authority;
+import org.einnovator.util.web.Result;
+import org.einnovator.util.web.WebUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.InputStreamResource;
@@ -53,6 +55,8 @@ public class DocumentsClient {
 	@Qualifier("documentsRestTemplate")
 	private OAuth2RestTemplate restTemplate;
 
+	private OAuth2RestTemplate restTemplate0;
+
 	@Autowired
 	public DocumentsClient() {
 	}
@@ -66,14 +70,62 @@ public class DocumentsClient {
 		this.config = config;
 	}
 
+
+	// Getters/Setters
+
+	/**
+	 * Get the value of property {@code config}.
+	 *
+	 * @return the config
+	 */
+	public DocumentsClientConfiguration getConfig() {
+		return config;
+	}
+
+	/**
+	 * Set the value of property {@code config}.
+	 *
+	 * @param config the value of property config
+	 */
+	public void setConfig(DocumentsClientConfiguration config) {
+		this.config = config;
+	}
+
+	/**
+	 * Get the value of property {@code restTemplate}.
+	 *
+	 * @return the restTemplate
+	 */
 	public OAuth2RestTemplate getRestTemplate() {
 		return restTemplate;
 	}
 
+	/**
+	 * Set the value of property {@code restTemplate}.
+	 *
+	 * @param restTemplate the value of property restTemplate
+	 */
 	public void setRestTemplate(OAuth2RestTemplate restTemplate) {
 		this.restTemplate = restTemplate;
 	}
 
+	/**
+	 * Get the value of property {@code restTemplate0}.
+	 *
+	 * @return the restTemplate0
+	 */
+	public OAuth2RestTemplate getRestTemplate0() {
+		return restTemplate0;
+	}
+
+	/**
+	 * Set the value of property {@code restTemplate0}.
+	 *
+	 * @param restTemplate0 the value of property restTemplate0
+	 */
+	public void setRestTemplate0(OAuth2RestTemplate restTemplate0) {
+		this.restTemplate0 = restTemplate0;
+	}
 
 	public URI write(Document document, DocumentOptions options, DocumentsClientContext context) {
 		try {
@@ -132,7 +184,8 @@ public class DocumentsClient {
 			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
 			HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<>(map, headers);
-			URI response = restTemplate.postForLocation(uri, requestEntity);
+
+			URI response = postForLocation(uri, requestEntity, context);
 			return response;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -171,7 +224,7 @@ public class DocumentsClient {
 			}
 			UriUtils.appendQueryParameters(metaUri, options);
 			RequestEntity<Void> request = RequestEntity.get(metaUri).accept(MediaType.APPLICATION_JSON).build();
-			ResponseEntity<Document> response = exchange(request, Document.class);			
+			ResponseEntity<Document> response = exchange(request, Document.class, context);			
 			document = response.getBody();
 		}
 
@@ -216,7 +269,7 @@ public class DocumentsClient {
 		}
 		builder.accept(MediaType.valueOf(contentType));
 		RequestEntity<Void> request = builder.build();
-		ResponseEntity<byte[]> response = exchange(request, byte[].class);
+		ResponseEntity<byte[]> response = exchange(request, byte[].class, context);
 		if (logger.isDebugEnabled()) {
 			System.out.println("content:" + uri + " " + response.getBody().length);			
 		}
@@ -228,7 +281,7 @@ public class DocumentsClient {
 		uri = appendQueryParameters(uri, filter);
 		uri = appendQueryParameters(uri, pageable);
 		RequestEntity<Void> request = RequestEntity.get(uri).accept(MediaType.APPLICATION_JSON).build();
-		ResponseEntity<Document[]> response = exchange(request, Document[].class);
+		ResponseEntity<Document[]> response = exchange(request, Document[].class, context);
 		if (response.getStatusCode() == HttpStatus.OK) {
 			Document[] documents = response.getBody();
 			return Arrays.asList(documents);
@@ -243,7 +296,8 @@ public class DocumentsClient {
 
 	public void delete(URI uri, DocumentOptions options, DocumentsClientContext context) {		
 		uri = appendQueryParameters(uri, options);
-		restTemplate.delete(uri);
+		RequestEntity<Void> request = RequestEntity.delete(uri).build();
+		exchange(request, Void.class, context);
 	}
 
 	public Document restore(URI uri, DocumentOptions options, DocumentsClientContext context) {
@@ -254,7 +308,7 @@ public class DocumentsClient {
 		URI uri = makeURI(DocumentsEndpoints.restore(path, config));
 		uri = appendQueryParameters(uri, options);
 		RequestEntity<Void> request = RequestEntity.get(uri).accept(MediaType.APPLICATION_JSON).build();
-		ResponseEntity<Document> response = exchange(request, Document.class);
+		ResponseEntity<Document> response = exchange(request, Document.class, context);
 		return response.getBody();
 	}
 
@@ -262,8 +316,8 @@ public class DocumentsClient {
 		URI uri = makeURI(DocumentsEndpoints.folder(path, config));
 		uri = appendQueryParameters(uri, options);
 		RequestEntity<Void> request = RequestEntity.post(uri).accept(MediaType.APPLICATION_JSON).build();
-		URI response = restTemplate.postForLocation(uri, request);
-		return response;
+		ResponseEntity<?> response = exchange(request, Void.class, context);
+		return response.getHeaders().getLocation();
 	}
 
 	public URI copy(String path, String destPath, DocumentOptions options, DocumentsClientContext context) {
@@ -273,8 +327,8 @@ public class DocumentsClient {
 		uri = appendQueryParameter(uri, "path", destPath);
 
 		RequestEntity<Void> request = RequestEntity.post(uri).accept(MediaType.APPLICATION_JSON).build();
-		URI response = restTemplate.postForLocation(uri, request);
-		return response;
+		ResponseEntity<?> response = exchange(request, Void.class, context);
+		return response.getHeaders().getLocation();
 	}
 
 	public URI move(String path, String destPath, DocumentOptions options, DocumentsClientContext context) {
@@ -283,7 +337,8 @@ public class DocumentsClient {
 		destPath = UriUtils.encode(destPath, DocumentsClientConfiguration.DEFAULT_ENCODING);
 		uri = appendQueryParameter(uri, "path", destPath);
 		RequestEntity<Void> request = RequestEntity.post(uri).accept(MediaType.APPLICATION_JSON).build();
-		return restTemplate.postForLocation(uri, request);
+		ResponseEntity<?> response = exchange(request, Void.class, context);
+		return response.getHeaders().getLocation();
 	}
 
 
@@ -293,7 +348,8 @@ public class DocumentsClient {
 		Document document = new Document();
 		document.setPath(path);
 		RequestEntity<Authority> request = RequestEntity.post(uri).contentType(MediaType.APPLICATION_JSON).body(authority);
-		return postForLocation(uri, request);
+		ResponseEntity<?> response = exchange(request, Void.class, context);
+		return response.getHeaders().getLocation();
 	}
 
 	public void removeAuthority(String path, String id, DocumentOptions options, DocumentsClientContext context) {
@@ -304,15 +360,55 @@ public class DocumentsClient {
 		Document document = new Document();
 		document.setPath(path);
 		RequestEntity<Void> request = RequestEntity.delete(uri).build();
-		exchange(request, Void.class);
+		exchange(request, Void.class, context);
 	}
 
-	protected <T> ResponseEntity<T> exchange(RequestEntity<?> request, Class<T> responseType) throws RestClientException {
+	protected <T> ResponseEntity<T> exchange(RequestEntity<?> request, Class<T> responseType, DocumentsClientContext context) throws RestClientException {
+		OAuth2RestTemplate restTemplate = getRequiredRestTemplate(context);
+
+		try {
+			return exchange(restTemplate, request, responseType);			
+		} catch (RuntimeException e) {
+			if (context!=null && !context.isSingleton()) {
+				context.setResult(new Result<Object>(e));
+			}
+			throw e;
+		}
+	}
+	
+
+	protected URI postForLocation(URI uri, HttpEntity<LinkedMultiValueMap<String, Object>> request, DocumentsClientContext context) throws RestClientException {
+		OAuth2RestTemplate restTemplate = getRequiredRestTemplate(context);
+		try {
+			return postForLocation(restTemplate, uri, request);			
+		} catch (RuntimeException e) {
+			if (context!=null && !context.isSingleton()) {
+				context.setResult(new Result<Object>(e));
+			}
+			throw e;
+		}
+	}
+
+	protected OAuth2RestTemplate getRequiredRestTemplate(DocumentsClientContext context) {
+		OAuth2RestTemplate restTemplate = this.restTemplate;
+		if (context!=null && context.getRestTemplate()!=null) {
+			restTemplate = context.getRestTemplate();
+		} else {
+			if (WebUtil.getHttpServletRequest()==null && this.restTemplate0!=null) {
+				restTemplate = this.restTemplate0;
+			}			
+		}
+		return restTemplate;
+	}
+	
+
+	protected <T> ResponseEntity<T> exchange(OAuth2RestTemplate restTemplate, RequestEntity<?> request, Class<T> responseType) throws RestClientException {
 		return restTemplate.exchange(request, responseType);
 	}
 
-	protected URI postForLocation(URI url, RequestEntity<?> request) throws RestClientException {
-		return restTemplate.postForLocation(url, request);
+	protected <T> URI postForLocation(OAuth2RestTemplate restTemplate, URI uri, HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity) throws RestClientException {
+		return restTemplate.postForLocation(uri, requestEntity);
 	}
-
+	
+	
 }
