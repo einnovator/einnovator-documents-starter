@@ -4,6 +4,7 @@ import org.einnovator.util.model.EntityBase;
 import org.einnovator.util.model.OwnerType;
 import org.einnovator.util.model.ToStringCreator;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -17,6 +18,8 @@ public class OwnedEntity extends EntityBase {
 
 	protected Object user;
 
+	protected String groupId;
+	
 	protected Object group;
 
 
@@ -168,8 +171,18 @@ public class OwnedEntity extends EntityBase {
 		return ownerType==null || ownerType==OwnerType.USER;
 	}
 
+
 	public boolean isOwnerGroup() {
 		return ownerType==OwnerType.GROUP;
 	}
 
+	@JsonIgnore
+	public String getRequiredOwner() {
+		return owner!=null ? owner : createdBy;
+	}
+
+	@JsonIgnore
+	public Object getRequiredOwnerUser() {
+		return user!=null ? user : createdByUser;
+	}
 }
