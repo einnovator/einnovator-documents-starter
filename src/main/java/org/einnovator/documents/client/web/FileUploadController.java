@@ -19,7 +19,6 @@ import org.einnovator.documents.client.config.FilesConfiguration;
 import org.einnovator.documents.client.manager.DocumentManager;
 import org.einnovator.documents.client.model.Document;
 import org.einnovator.documents.client.modelx.DocumentOptions;
-import org.einnovator.util.PathUtil;
 import org.einnovator.util.UriUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -147,8 +146,7 @@ public class FileUploadController extends ControllerBase {
 			} else {
 				side = width;
 			}
-			BufferedImage newImage = originalImgage.getSubimage(width / 2 - (side / 2), height / 2 - (side / 2), side,
-					side);
+			BufferedImage newImage = originalImgage.getSubimage(width / 2 - (side / 2), height / 2 - (side / 2), side, side);
 			File outFile = File.createTempFile(file.getOriginalFilename() + "-cropped", "tmp");
 			ImageIO.write(newImage, format, outFile);
 			return outFile;
@@ -174,74 +172,15 @@ public class FileUploadController extends ControllerBase {
 	}
 
 	protected String getTmpResourcePath(String key, String name, boolean appendUuid) {
-		FilesConfiguration config = getFileConfiguration();
-		if (config != null) {
-			String location = config.getLocation(key);
-			if (location != null) {
-				return location;
-			}
-			String folder = getTmpFolder();
-			if (folder != null) {
-				return folder + getResourceName(key, name, appendUuid);
-			}
-			return config.getRoot() + getResourceName(key, name, appendUuid);
-		}
-		return null;
+		return UploadUtils.getTmpResourcePath(key, name, appendUuid, getFileConfiguration());
 	}
 
 	protected String getResourcePath(String key, String folder, String name, boolean appendUuid) {
-		FilesConfiguration config = getFileConfiguration();
-		if (config != null) {
-			String location = config.getLocation(key);
-			if (location != null) {
-				return location;
-			}
-			if (StringUtils.hasText(folder)) {
-				return PathUtil.concat(config.getRoot(),
-						PathUtil.concat(folder, getResourceName(key, name, appendUuid)));
-			} else if (StringUtils.hasText(key)) {
-				key = key.trim();
-				folder = config.getFolder(key);
-				if (folder != null) {
-					return PathUtil.concat(folder, getResourceName(key, name, appendUuid));
-				}
-			}
-			return config.getRoot() + getResourceName(key, name, appendUuid);
-		}
-		return null;
+		return UploadUtils.getResourcePath(key, folder, name, appendUuid, getFileConfiguration());
 	}
 
 	protected String getResourceName(String key, String name, boolean appendUuid) {
-		StringBuilder sb = new StringBuilder();
-		if (StringUtils.hasText(key) && appendUuid) {
-			sb.append(key.trim());
-		}
-		String ext = null;
-		if (StringUtils.hasText(name)) {
-			int i= name.indexOf(".");
-			if (i>0 && i<name.length()-1) {
-				ext = name.substring(i+1);
-				name = name.substring(0, i);
-			}
-			if (sb.length() > 0) {
-				sb.append("-");
-			}
-			sb.append(name.trim());
-		}
-		if (appendUuid) {
-			String uuid = generateUUID(key, name);
-			if (StringUtils.hasText(uuid) && appendUuid) {
-				if (sb.length() > 0) {
-					sb.append("-");
-				}
-				sb.append(uuid);
-			}			
-		}
-		if (StringUtils.hasText(ext)) {
-			sb.append(".");
-			sb.append(ext);
-		}
-		return sb.toString();
+		return UploadUtils.getResourceName(key, name, appendUuid, getFileConfiguration());
 	}
 
 	protected String generateUUID(String key, String name) {

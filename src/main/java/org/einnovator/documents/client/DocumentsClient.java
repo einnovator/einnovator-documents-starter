@@ -135,7 +135,6 @@ public class DocumentsClient {
 			if (options!=null) {	
 				uri = appendQueryParameters(uri, options);
 			}
-
 			LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
 			HttpHeaders headers = new HttpHeaders();
 
