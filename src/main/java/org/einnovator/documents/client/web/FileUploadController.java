@@ -18,6 +18,7 @@ import org.einnovator.documents.client.config.DocumentsClientConfiguration;
 import org.einnovator.documents.client.config.FilesConfiguration;
 import org.einnovator.documents.client.manager.DocumentManager;
 import org.einnovator.documents.client.model.Document;
+import org.einnovator.documents.client.model.ShareType;
 import org.einnovator.documents.client.modelx.DocumentOptions;
 import org.einnovator.util.UriUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -106,8 +107,8 @@ public class FileUploadController extends ControllerBase {
 		try {
 			setupToken(principal, authentication);
 			document.setPath(resourcePath);
-			if (options.getPublicShare()==null) {
-				options.share(true, true);				
+			if (options.getSharing()==null) {
+				options.withSharing(ShareType.PUBLIC);
 			}
 			uri = uploadResource(document, options);
 			if (uri == null) {

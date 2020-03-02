@@ -20,21 +20,30 @@ abstract public class ProtectedEntity extends OwnedEntity {
 	
 	protected List<Authority> authorities;
 
+	//
+	// Constructors
+	//
+	
 	/**
 	 * Create instance of {@code ProtectedEntity}.
 	 *
 	 */
 	public ProtectedEntity() {
 	}
-	
-	public ProtectedEntity(String name) {
-		super(name);
+
+
+	/**
+	 * Create instance of {@code ProtectedEntity}.
+	 *
+	 * @param obj a prototype
+	 */
+	public ProtectedEntity(Object obj) {
+		super(obj);
 	}
 
-	public ProtectedEntity(Object prototype) {
-		super(prototype);
-	}
-
+	//
+	// Getters/Setters
+	//
 	
 	/**
 	 * Get the value of property {@code sharing}.
@@ -79,6 +88,7 @@ abstract public class ProtectedEntity extends OwnedEntity {
 	 * Set the value of property {@code sharing}.
 	 *
 	 * @param sharing the value of property sharing
+	 * @return this {@code ProtectedEntity}
 	 */
 	public ProtectedEntity withSharing(ShareType sharing) {
 		this.sharing = sharing;
@@ -89,14 +99,22 @@ abstract public class ProtectedEntity extends OwnedEntity {
 	 * Set the value of property {@code authorities}.
 	 *
 	 * @param authorities the authorities to with
+	 * @return this {@code ProtectedEntity}
 	 */
 	public ProtectedEntity withAuthorities(List<Authority> authorities) {
 		this.authorities = authorities;
 		return this;
 	}
 	
-	//Authorities
+	//
+	// Authorities
+	//
 	
+	/**
+	 * Add {@code Authority} to this {@code ProtectedEntity}.
+	 * 
+	 * @param authority the {@code Authority}
+	 */
 	public void addAuthority(Authority authority) {
 		if (authorities==null) {
 			authorities = new ArrayList<Authority>();
@@ -104,6 +122,12 @@ abstract public class ProtectedEntity extends OwnedEntity {
 		authorities.add(authority);
 	}
 
+	/**
+	 * Remove {@code Authority} with specified index.
+	 * 
+	 * @param index the index of the  {@code Authority}
+	 * @return the  {@code Authority} if found, null otherwise
+	 */
 	public Authority removeAuthority(int index) {
 		List<Authority> authorities = getAuthorities();
 		if (authorities==null || index <0 || index>= authorities.size()) {
@@ -112,7 +136,12 @@ abstract public class ProtectedEntity extends OwnedEntity {
 		return authorities.remove(index);
 	}
 	
-
+	/**
+	 * Remove {@code Authority} with specified identifier.
+	 * 
+	 * @param id the identifier (UUID or ID)
+	 * @return the  {@code Authority} if found, null otherwise
+	 */
 	public Authority removeAuthority(String id) {
 		if (authorities!=null && id!=null) {
 			for (int i=0; i<authorities.size(); i++) {
@@ -126,6 +155,12 @@ abstract public class ProtectedEntity extends OwnedEntity {
 		return null;
 	}
 	
+	/**
+	 * Get {@code Authority} with specified index.
+	 * 
+	 * @param index the index of the  {@code Authority}
+	 * @return the  {@code Authority} if found, null otherwise
+	 */
 	public Authority getAuthority(int index) {
 		List<Authority> authorities = getAuthorities();
 		if (authorities==null || index <0 || index>= authorities.size()) {
@@ -134,6 +169,12 @@ abstract public class ProtectedEntity extends OwnedEntity {
 		return authorities.get(index);
 	}
 
+	/**
+	 * Find the specified {@code Authority} by matching equal identifier.
+	 * 
+	 * @param authority the  {@code Authority} to find
+	 * @return the  {@code Authority} if found, null otherwise
+	 */
 	public Authority findAuthority(Authority authority) {
 		List<Authority> authorities = getAuthorities();
 		if (authority!=null && authorities!=null) {
@@ -146,6 +187,12 @@ abstract public class ProtectedEntity extends OwnedEntity {
 		return null;
 	}
 
+	/**
+	 * Find the {@code Authority} with specified identifier.
+	 * 
+	 * @param id the identifier (UUID or ID)
+	 * @return the  {@code Authority} if found, null otherwise
+	 */
 	public Authority findAuthority(String id) {
 		List<Authority> authorities = getAuthorities();
 		if (id!=null && authorities!=null) {
@@ -176,10 +223,23 @@ abstract public class ProtectedEntity extends OwnedEntity {
 		return !CollectionUtil.isEmpty(authorities);
 	}
 
+	/**
+	 * Check if {@code ProtectedEntity} is {@code PUBLIC} based on the value of property {@link #sharing}.
+	 * 
+	 * @return true if {@code PUBLIC}, false otherwise
+	 */
 	public boolean isPublic() {
 		return sharing==ShareType.PUBLIC;
 	}
 	
+	/**
+	 * Check if {@code ProtectedEntity} is {@code PRIVATE} based on the value of property {@link #sharing}.
+	 * 
+	 * @return true if {@code PRIVATE}, false otherwise
+	 */
+	public boolean isPrivate() {
+		return sharing==ShareType.PRIVATE;
+	}
 
 
 	public boolean canView(String username, List<String> groups, Collection<? extends GrantedAuthority> authorities) {

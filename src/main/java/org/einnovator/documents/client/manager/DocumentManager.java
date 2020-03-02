@@ -11,130 +11,203 @@ import org.einnovator.util.security.Authority;
 import org.springframework.cache.Cache;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.client.RestClientException;
 
 public interface DocumentManager {
 
+	
+	//
 	//Documents and Folders
+	//
 
 	/**
-	 * Write (upload) document content, and attributes, and optionally attachments and versions.
+	 * Write a {@code Document}.
 	 * 
-	 * Return the URI for the uploaded document.
-	 * 
-	 * @param document  a document to be uploaded
-	 * @param options  the {@code DocumentOptions}
-	 * @param context optional {@code DocumentsClientContext context}
-	 * @return the direct URI to the document uploaded
+	 * <p><b>Required Security Credentials</b>: Client, Admin (global role ADMIN), or owner of {@code Document} folder.
+	 * <br>Role {@code DOCUMENT_MANAGER} if role-based access-control is enabled for the {@code Document} folder.
+
+	 * @param document the {@code Document}
+	 * @param options optional {@code DocumentOptions}
+	 * @param context optional {@code DocumentsClientContext}
+	 * @return the location {@code URI} for the written {@code Document}, or null if request fails
 	 */
 	URI write(Document document, DocumentOptions options, DocumentsClientContext context);
 
 	/**
-	 * Read (download) document content, and attributes, and optionally attachments and versions.
+	 * Read a {@code Document}.
 	 * 
-	 * Return the {@code Document}, with the following component parts:
-	 * <ul>
-	 *   <li>byte content, except if option {@code content} is false
-	 *   <li>meta attributes, if options {@code meta} is false (content length and content type always available)
-	 * </ul>  
-	 * @param path path of document is tree of principal or specified user
-	 * @param options the {@code DocumentOptions}
-	 * @param context optional {@code DocumentsClientContext context}
-	 * @return the {@code Document}
+	 * <p><b>Required Security Credentials</b>: Client, Admin (global role ADMIN), or owner.
+	 * <br>Member of {@code Document} group if sharing type is {@code RESTRICTED}.
+	 * 
+	 * @param path the {@code Document} path in the tree of the user (the principal, by default)
+	 * @param options optional {@code DocumentOptions}
+	 * @param context optional {@code DocumentsClientContext}
+	 * @return the {@code Document}, or null if request fails
 	 */
 	Document read(String path, DocumentOptions options, DocumentsClientContext context);
 
 	/**
-	 * Read (download) document content, and attributes, and optionally attachments and versions.
+	 * Read a {@code Document}.
 	 * 
-	 * Return the URI for the uploaded document.
+	 * <p><b>Required Security Credentials</b>: Client, Admin (global role ADMIN), or owner.
+	 * <br>Member of {@code Document} group if sharing type is {@code RESTRICTED}.
 	 * 
-	 * @param uri URI of document content
-	 * @param options the {@code DocumentOptions}
-	 * @return URI the direct URI to the document uploaded
+	 * @param uri the {@code URI} of the {@code Document}
+	 * @param options optional {@code DocumentOptions}
+	 * @param context optional {@code DocumentsClientContext}
+	 * @return the {@code Document}, or null if request fails
 	 */
 	Document read(URI uri, DocumentOptions options, DocumentsClientContext context);
-
 	/**
-	 * Read (download) document content as byte array.
+	 * Read content of a {@code Document}.
 	 * 
-	 * Return the byte array with binary content.
-	 * 
-	 * @param uri {@code URI} where to download document
-	 * @param options the {@code DocumentOptions}
-	 * @return URI the direct {@code URI} to the document uploaded
+	 * @param uri the {@code URI} of the {@code Document}
+	 * @param options optional {@code DocumentOptions}
+	 * @param contentType the requested content type
+	 * @param context optional {@code DocumentsClientContext}
+	 * @return the content, or null if request fails
 	 */
 	byte[] content(URI uri, DocumentOptions options, String contentType, DocumentsClientContext context);
 
 	
 	/**
-	 * List entries in specified folder.
-	 *
-	 * @param path the folder path
+	 * List {@code Document}s in a folder.
+	 * 
+	 * <p><b>Required Security Credentials</b>: Matching {@link Document#getSharing()} and {@link Document#getAuthorities()}.
+	 * 
+	 * @param path the folder path in the tree of the user (the principal, by default)
 	 * @param filter a {@code DocumentFilter}
-	 * @param pageable a {@code Pageable}
-	 * @return the list of entries in folder as {@code Document}
+	 * @param pageable a {@code Pageable} (optional)
+	 * @param context optional {@code DocumentsClientContext}
+	 * @throws RestClientException if request fails
+	 * @return a {@code List} with {@code Document}s, or null if request fails
 	 */
 	List<Document> list(String path, DocumentFilter filter, Pageable pageable, DocumentsClientContext context);
 
 	/**
-	 * Delete the document or folder in specified path.
+	 * Delete or moves recycle-bin/trash to existing {@code Document}
 	 * 
-	 * @param path the path
-	 * @param options optional {@code DocumentOptions}
-	 * @return true, if operation is successful; false, otherwise.
+	 * 
+	 * <p><b>Required Security Credentials</b>: Client, Admin (global role ADMIN), or owner.
+	 * <br>Role {@code DOCUMENT_MANAGER} if role-based access-control is enabled for the {@code Document}.
+	 * 
+	 * @param path the {@code Document} path in the tree of the user (the principal, by default)
+	 * @param options optional {@code RequestOptions}
+	 * @param context optional {@code SocialClientContext}
+	 * @return true if {@code Document} is deleted or move to recycle-bin/trash, false if request fails
 	 */
 	boolean delete(String path, DocumentOptions options, DocumentsClientContext context);
 
 	/**
-	 * Delete the document or folder in specified URI.
+	 * Delete or moves recycle-bin/trash to existing {@code Document}
 	 * 
-	 * @param uri the document {@code URI}
-	 * @param options optional {@code DocumentOptions}
-	 * @return true, if operation is successful; false, otherwise.
+	 * <p><b>Required Security Credentials</b>: Client, Admin (global role ADMIN), or owner.
+	 * <br>Role {@code DOCUMENT_MANAGER} if role-based access-control is enabled for the {@code Document}.
+	 * 
+	 * @param uri the {@code URI} of the {@code Document}
+	 * @param options optional {@code RequestOptions}
+	 * @param context optional {@code SocialClientContext}
+	 * @return true if {@code Document} is deleted or move to recycle-bin/trash, false if request fails
 	 */
 	boolean delete(URI uri, DocumentOptions options, DocumentsClientContext context);
 
+	/**
+	 * Restore previous delete {@code Document} if found in recycle-bin/trash folder.
+	 * 
+	 * <p><b>Required Security Credentials</b>: Client, Admin (global role ADMIN), or owner.
+	 * <br>Role {@code DOCUMENT_MANAGER} if role-based access-control is enabled for the {@code Document}.
+	 * 
+	 * @param path the {@code Document} path in the tree of the user (the principal, by default)
+	 * @param options optional {@code RequestOptions}
+	 * @param context optional {@code SocialClientContext}
+	 * @return the restored {@code Document} meta-data, or null if request fails
+	 * @return true if {@code Document} is restored, false if request fails
+	 */
 	Document restore(String path, DocumentOptions options, DocumentsClientContext context);
+	
+	/**
+	 * Restore previous delete {@code Document} if found in recycle-bin/trash folder.
+	 * 
+	 * <p><b>Required Security Credentials</b>: Client, Admin (global role ADMIN), or owner.
+	 * <br>Role {@code DOCUMENT_MANAGER} if role-based access-control is enabled for the {@code Document}.
+	 * 
+	 * @param uri the {@code URI} of the {@code Document}
+	 * @param options optional {@code RequestOptions}
+	 * @param context optional {@code SocialClientContext}
+	 * @return the restored {@code Document} meta-data, or null if request fails
+	 */
 	Document restore(URI uri, DocumentOptions options, DocumentsClientContext context);
 
 
 	/**
-	 * Make folder/directory at specified path.
+	 * Make a new directory/folder.
 	 * 
-	 * The path is relative to root of the request {@code Principal}.
-	 * 
-	 * @param path the path of directory
+	 * <p><b>Required Security Credentials</b>: Client, Admin (global role ADMIN), or owner of parent folder.
+	 * <br>Role {@code DOCUMENT_MANAGER} if role-based access-control is enabled for the parent folder.
+
+	 * @param path the folder path in the tree of the user (the principal, by default)
 	 * @param options optional {@code DocumentOptions}
-	 * @return URI the {@code URI} of the created {@code Document}
+	 * @param context optional {@code DocumentsClientContext}
+	 * @return the location {@code URI} for the written folder, or null if request fails 
 	 */
 	URI mkdir(String path, DocumentOptions options, DocumentsClientContext context);
 
 	/**
-	 * Copy file from source path to destination path.
+	 * Copy {@code Document}
 	 * 
-	 * The path is relative to root of the request {@code Principal}.
 	 * 
-	 * @param path the source path
-	 * @param destPath the destination path
-	 * @param options optional {@code DocumentOptions}
-	 * @return URI the {@code URI} of the created {@code Document}
+	 * <p><b>Required Security Credentials</b>: Client, Admin (global role ADMIN), or owner.
+	 * <br>Role {@code DOCUMENT_MANAGER} if role-based access-control is enabled for the {@code Document}.
+	 * 
+	 * @param path the source {@code Document} path, in the tree of the user (the principal, by default)
+	 * @param destPath the path where to write the {@code Document} copy path, in the tree of the user (the principal, by default)
+	 * @param options optional {@code RequestOptions}
+	 * @param context optional {@code SocialClientContext}
+	 * @return the location {@code URI} for the {@code Document} copy, or null if request fails 
 	 */
 	URI copy(String path, String destPath, DocumentOptions options, DocumentsClientContext context);
 
 	/**
-	 * Move file from source path to destination path.
+	 * Move {@code Document}
 	 * 
-	 * The path is relative to root of the request {@code Principal}.
 	 * 
-	 * @param path the source path
-	 * @param destPath the destination path
-	 * @param options optional {@code DocumentOptions}
-	 * @return URI the {@code URI} of the created {@code Document}
+	 * <p><b>Required Security Credentials</b>: Client, Admin (global role ADMIN), or owner.
+	 * <br>Role {@code DOCUMENT_MANAGER} if role-based access-control is enabled for the {@code Document}.
+	 * 
+	 * @param path the original {@code Document} path, in the tree of the user (the principal, by default)
+	 * @param destPath the path where to move the {@code Document}, in the tree of the user (the principal, by default)
+	 * @param options optional {@code RequestOptions}
+	 * @param context optional {@code SocialClientContext}
+	 * @return the new location {@code URI} for the {@code Document}, or null if request fails 
 	 */
 	URI move(String path, String destPath, DocumentOptions options, DocumentsClientContext context);
 
 	
+	//
+	// Authorities
+	//
+
+	/**
+	 * Add {@code Authority} to {@code Document} in the specified path.
+	 * 
+	 * @param path the {@code Document} path, in the tree of the user (the principal, by default)
+	 * @param authority the  {@code Authority}
+	 * @param options optional {@code RequestOptions}
+	 * @param context optional {@code SocialClientContext}
+	 * @return the {@code URI} that uniquely identifies the {@code Authority}, or null if request fails 
+	 */
 	URI addAuthority(String path, Authority authority, DocumentOptions options, DocumentsClientContext context);
+	
+	
+	/**
+	 * Remove {@code Authority} from {@code Document} in the specified path.
+	 * 
+	 * @param path the {@code Document} path, in the tree of the user (the principal, by default)
+	 * @param id the  {@code Authority} identifier (UUID)
+	 * @param options optional {@code RequestOptions}
+	 * @param context optional {@code SocialClientContext}
+	 * @return true if {@code Authority} is removed, false if request fails
+	 */
 	boolean removeAuthority(String path, String id, DocumentOptions options, DocumentsClientContext context);
 
 	// Caching
@@ -142,11 +215,45 @@ public interface DocumentManager {
 	void onFolderUpdate(String path, DocumentsClientContext context);
 	void onDocumentUpdate(String path, DocumentsClientContext context);
 
+	/**
+	 * Clear all caches related to {@code Document}s.
+	 * 
+	 */
 	void clearCaches();
+
+	/**
+	 * Clear {@code Document} file cache.
+	 * 
+	 */
 	void clearDocumentCache();
+
+	/**
+	 * Clear {@code Document} folder cache.
+	 * 
+	 */
 	void clearFolderCache();
+	
+	
+	/**
+	 * Get the cache for file {@code Document}s.
+	 * 
+	 * @return the {@code Cache}
+	 */
 	Cache getDocumentCache();
+
+	/**
+	 * Get the cache for folder {@code Document}s.
+	 * 
+	 * @return the {@code Cache}
+	 */
 	Cache getFolderCache();
 	
+	/**
+	 * Handle {@code ApplicationEvent}.
+	 * 
+	 * Updates the {@code Document}s in caches if event of relevant type.
+	 * 
+	 * @param event an {@code ApplicationEvent}
+	 */
 	void onEvent(ApplicationEvent event);
 }

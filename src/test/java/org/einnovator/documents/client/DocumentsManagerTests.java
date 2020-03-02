@@ -25,7 +25,7 @@ import org.einnovator.documents.client.config.DocumentsClientConfig;
 import org.einnovator.documents.client.manager.DocumentManager;
 import org.einnovator.documents.client.model.Document;
 import org.einnovator.documents.client.modelx.DocumentOptions;
-import org.einnovator.sso.client.support.SsoTestHelper;
+import org.einnovator.sso.client.SsoTestHelper;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -508,7 +508,7 @@ public class DocumentsManagerTests extends SsoTestHelper {
 		System.out.println("URI: " + uri);
 
 		setPrincipal(NON_AUTHORIZED_SHARE_USER, TEST_PASSWORD);
-		assertNull(manager.read(new URI(uri),new DocumentOptions(META_ONLY).username(NON_AUTHORIZED_SHARE_USER), null));
+		assertNull(manager.read(new URI(uri),new DocumentOptions(META_ONLY).withRunAs(NON_AUTHORIZED_SHARE_USER).as(DocumentOptions.class), null));
 	}
 
 	@Test

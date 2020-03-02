@@ -26,7 +26,7 @@ import org.einnovator.documents.client.config.DocumentsClientConfig;
 import org.einnovator.documents.client.config.DocumentsClientConfiguration;
 import org.einnovator.documents.client.model.Document;
 import org.einnovator.documents.client.modelx.DocumentOptions;
-import org.einnovator.sso.client.support.SsoTestHelper;
+import org.einnovator.sso.client.SsoTestHelper;
 import org.einnovator.util.UriUtils;
 import org.einnovator.util.security.Authority;
 import org.junit.Test;
@@ -444,7 +444,7 @@ public class DocumentsClientTests extends SsoTestHelper {
 		client.write(document, null, null);
 
 
-		Document nullDoc = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER), null);
+		Document nullDoc = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).withRunAs(SHARE_USER).as(DocumentOptions.class), null);
 
 
 		assertNull(nullDoc);
@@ -455,13 +455,13 @@ public class DocumentsClientTests extends SsoTestHelper {
 		Document sharedDoc = client.read(document.getPath(), META_ONLY, null);
 		assertEquals(sharedDoc.getAuthorities().get(0), authority);
 
-		sharedDoc = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER), null);
+		sharedDoc = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).withRunAs(SHARE_USER).as(DocumentOptions.class), null);
 
 		assertNotNull(sharedDoc);
 
 		client.delete(document.getName(), FORCE, null);
 
-		sharedDoc = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER), null);
+		sharedDoc = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).withRunAs(SHARE_USER).as(DocumentOptions.class), null);
 
 		assertNull(sharedDoc);
 	}
@@ -474,7 +474,7 @@ public class DocumentsClientTests extends SsoTestHelper {
 		Authority authority = Authority.user(SHARE_USER, true, true, true);
 
 		setPrincipal(SHARE_USER, TEST_PASSWORD);
-		Document nullDoc = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER), null);
+		Document nullDoc = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).withRunAs(SHARE_USER).as(DocumentOptions.class), null);
 
 		System.out.println("DOC NULL: " + nullDoc);
 
@@ -487,7 +487,7 @@ public class DocumentsClientTests extends SsoTestHelper {
 		assertEquals(sharedDoc.getAuthorities().get(0), authority);
 
 		setPrincipal(SHARE_USER, TEST_PASSWORD);
-		sharedDoc = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER), null);
+		sharedDoc = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).withRunAs(SHARE_USER).as(DocumentOptions.class), null);
 
 		assertNotNull(sharedDoc);
 
@@ -495,7 +495,7 @@ public class DocumentsClientTests extends SsoTestHelper {
 		client.delete(document.getName(), FORCE, null);
 
 		setPrincipal(SHARE_USER, TEST_PASSWORD);
-		sharedDoc = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER), null);
+		sharedDoc = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).withRunAs(SHARE_USER).as(DocumentOptions.class), null);
 
 		assertNull(sharedDoc);
 	}
@@ -513,7 +513,7 @@ public class DocumentsClientTests extends SsoTestHelper {
 		client.removeAuthority(document.getPath(), authId, null, null);
 
 
-		Document sharedDoc = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER), null);
+		Document sharedDoc = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).withRunAs(SHARE_USER).as(DocumentOptions.class), null);
 		assertEquals(null, sharedDoc);
 
 		sharedDoc = client.read(document.getName(), META_ONLY, null);
@@ -536,7 +536,7 @@ public class DocumentsClientTests extends SsoTestHelper {
 
 		client.delete(document.getName(), FORCE, null);
 
-		doc2 = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER), null);
+		doc2 = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).withRunAs(SHARE_USER).as(DocumentOptions.class), null);
 		assertNull(doc2);
 	}
 
@@ -548,7 +548,7 @@ public class DocumentsClientTests extends SsoTestHelper {
 
 		client.write(document, CONTENT_AND_META, null);
 
-		Document document2 = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(CONTENT_AND_META).username(SHARE_USER), null);
+		Document document2 = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(CONTENT_AND_META).withRunAs(SHARE_USER).as(DocumentOptions.class), null);
 
 		assertNotNull(document2);
 	}
@@ -663,10 +663,10 @@ public class DocumentsClientTests extends SsoTestHelper {
 		
 		document.addAuthority(authority);
 
-		Document doc2 = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).username(SHARE_USER), null);
+		Document doc2 = client.read(SHARE_FOLDER + document.getName(), new DocumentOptions(META_ONLY).withRunAs(SHARE_USER).as(DocumentOptions.class), null);
 		for (Document attachment : doc2.getAttachments()) {
 			System.out.println("ATTCH: " + attachment + " URI: " + attachment.getUri());
-			assertNotNull(client.read(new URI(attachment.getUri()), new DocumentOptions(META_ONLY).username(SHARE_USER), null));
+			assertNotNull(client.read(new URI(attachment.getUri()), new DocumentOptions(META_ONLY).withRunAs(SHARE_USER).as(DocumentOptions.class), null));
 		}
 	}
 
@@ -679,7 +679,7 @@ public class DocumentsClientTests extends SsoTestHelper {
 		System.out.println("URI: " + uri);
 
 		setPrincipal(NON_AUTHORIZED_SHARE_USER, TEST_PASSWORD);
-		assertNull(client.read(new URI(uri),new DocumentOptions(META_ONLY).username(NON_AUTHORIZED_SHARE_USER), null));
+		assertNull(client.read(new URI(uri),new DocumentOptions(META_ONLY).withRunAs(NON_AUTHORIZED_SHARE_USER).as(DocumentOptions.class), null));
 	}
 
 	@Test

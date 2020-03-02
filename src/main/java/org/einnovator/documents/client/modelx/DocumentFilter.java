@@ -4,87 +4,213 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.einnovator.documents.client.model.Document;
+import org.einnovator.documents.client.model.DocumentType;
 import org.einnovator.util.model.ToStringCreator;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+/**
+ * A filter for {@code Document}s.
+ *
+ * @author support@einnovator.org
+ *
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class DocumentFilter extends DocumentOptions {
 
 	protected String q;
-	
-	protected Boolean strict;
-	
+
+	protected String contentType;
+
 	protected String category;
 		
-	protected String tags;
-
-	protected Boolean folders;
+	protected DocumentType type;
 	
 	protected String marker;
 	 
+	//
+	// Constructors
+	//
+	
+	/**
+	 * Create instance of {@code DocumentFilter}.
+	 *
+	 */
 	public DocumentFilter() {
 	}	
 
+	//
+	// Getters/Setters
+	//
+
+	/**
+	 * Get the value of property {@code q}.
+	 *
+	 * @return the q
+	 */
 	public String getQ() {
 		return q;
 	}
 
+	/**
+	 * Set the value of property {@code q}.
+	 *
+	 * @param q the value of property q
+	 */
 	public void setQ(String q) {
 		this.q = q;
 	}
-	
+
+	/**
+	 * Get the value of property {@code contentType}.
+	 *
+	 * @return the contentType
+	 */
+	public String getContentType() {
+		return contentType;
+	}
+
+	/**
+	 * Set the value of property {@code contentType}.
+	 *
+	 * @param contentType the value of property contentType
+	 */
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
+	}
+
+	/**
+	 * Get the value of property {@code category}.
+	 *
+	 * @return the category
+	 */
 	public String getCategory() {
 		return category;
 	}
-	
+
+	/**
+	 * Set the value of property {@code category}.
+	 *
+	 * @param category the value of property category
+	 */
 	public void setCategory(String category) {
 		this.category = category;
 	}
-	
-	public String getEncoding() {
-		return encoding;
-	}
-	
-	public void setEncodingType(String encoding) {
-		this.encoding = encoding;
+
+	/**
+	 * Get the value of property {@code type}.
+	 *
+	 * @return the type
+	 */
+	public DocumentType getType() {
+		return type;
 	}
 
-	public void setEncoding(String encoding) {
-		this.encoding = encoding;
+	/**
+	 * Set the value of property {@code type}.
+	 *
+	 * @param type the value of property type
+	 */
+	public void setType(DocumentType type) {
+		this.type = type;
 	}
 
-	public String getTags() {
-		return tags;
-	}
-	
-	public void setTags(String tags) {
-		this.tags = tags;
-	}
-
-	
+	/**
+	 * Get the value of property {@code marker}.
+	 *
+	 * @return the marker
+	 */
 	public String getMarker() {
 		return marker;
 	}
 
+	/**
+	 * Set the value of property {@code marker}.
+	 *
+	 * @param marker the value of property marker
+	 */
 	public void setMarker(String marker) {
 		this.marker = marker;
 	}
+
+	//
+	// With
+	//
+
+	/**
+	 * Set the value of property {@code q}.
+	 *
+	 * @param q the value of property q
+	 * @return this {@code DocumentFilter}
+	 */
+	public DocumentFilter withQ(String q) {
+		this.q = q;
+		return this;
+	}
+
+	/**
+	 * Set the value of property {@code contentType}.
+	 *
+	 * @param contentType the value of property contentType
+	 * @return this {@code DocumentFilter}
+	 */
+	public DocumentFilter withContentType(String contentType) {
+		this.contentType = contentType;
+		return this;
+	}
+
+	/**
+	 * Set the value of property {@code category}.
+	 *
+	 * @param category the value of property category
+	 * @return this {@code DocumentFilter}
+	 */
+	public DocumentFilter withCategory(String category) {
+		this.category = category;
+		return this;
+	}
+
+	/**
+	 * Set the value of property {@code type}.
+	 *
+	 * @param type the value of property type
+	 * @return this {@code DocumentFilter}
+	 */
+	public DocumentFilter withType(DocumentType type) {
+		this.type = type;
+		return this;
+	}
+
+	/**
+	 * Set the value of property {@code marker}.
+	 *
+	 * @param marker the value of property marker
+	 * @return this {@code DocumentFilter}
+	 */
+	public DocumentFilter withMarker(String marker) {
+		this.marker = marker;
+		return this;
+	}
+
+
 
 	@Override
 	public ToStringCreator toString0(ToStringCreator creator) {
 		return super.toString0(creator)
 				.append("q", q)
-				.append("strict", strict)
+				.append("type", type)
+				.append("contentType", contentType)
 				.append("category", category)
-				.append("tags", tags)
-				.append("folders", folders)
 				.append("marker", marker)
 				;
 	}
+	
+	//
+	// Client side filtering
+	//
 	
 	public boolean filter(Document document) {
 		String name = document.getRequiredName();
@@ -102,13 +228,9 @@ public class DocumentFilter extends DocumentOptions {
 				}
 			}
 			String name_ = name.toLowerCase();
-			boolean strict = Boolean.TRUE.equals(this.strict);
 			if (q!=null) {
 				String q = this.q.toLowerCase();
-				if (!strict && !name_.toLowerCase().contains(q)) {
-					return false;
-				}
-				if (strict && !name_.toLowerCase().startsWith(q)) {
+				if (!name_.toLowerCase().contains(q)) {
 					return false;
 				}
 			}					
@@ -136,4 +258,5 @@ public class DocumentFilter extends DocumentOptions {
 		return filter.filter(documents);
 	}
 
+	
 }

@@ -124,7 +124,7 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 				logger.debug(String.format("read: %s %s", path, lpath, options));			
 			}
 			InputStream inputStream = null;
-			if (DocumentOptions.content(options)) {
+			if (DocumentOptions.isContent(options)) {
 				inputStream = new FileInputStream(file);				
 			}
 			if (Boolean.TRUE.equals(options.getMeta())) {

@@ -22,7 +22,9 @@ public class OwnedEntity extends EntityBase {
 	
 	protected Object group;
 
-
+	//
+	// Constructors
+	//
 	
 	/**
 	 * Create instance of {@code OwnedEntity}.
@@ -31,15 +33,19 @@ public class OwnedEntity extends EntityBase {
 	public OwnedEntity() {
 	}
 
+	/**
+	 * Create instance of {@code OwnedEntity}.
+	 *
+	 * @param obj a prototype
+	 */
+	public OwnedEntity(Object obj) {
+		super(obj);
+	}
+
+	//
+	// Getters/Setters
+	//
 	
-	public OwnedEntity(String name) {
-		super(name);
-	}
-
-	public OwnedEntity(Object prototype) {
-		super(prototype);
-	}
-
 	/**
 	 * Get the value of property {@code owner}.
 	 *
@@ -119,6 +125,7 @@ public class OwnedEntity extends EntityBase {
 	 * Set the value of property {@code owner}.
 	 *
 	 * @param owner the owner to with
+	 * @return this {@code OwnedEntity}
 	 */
 	public OwnedEntity withOwner(String owner) {
 		this.owner = owner;
@@ -130,6 +137,7 @@ public class OwnedEntity extends EntityBase {
 	 * Set the value of property {@code ownerType}.
 	 *
 	 * @param ownerType the ownerType to with
+	 * @return this {@code OwnedEntity}
 	 */
 	public OwnedEntity withOwnerType(OwnerType ownerType) {
 		this.ownerType = ownerType;
@@ -141,6 +149,7 @@ public class OwnedEntity extends EntityBase {
 	 * Set the value of property {@code user}.
 	 *
 	 * @param user the user to with
+	 * @return this {@code OwnedEntity}
 	 */
 	public OwnedEntity withUser(Object user) {
 		this.user = user;
@@ -152,6 +161,7 @@ public class OwnedEntity extends EntityBase {
 	 * Set the value of property {@code group}.
 	 *
 	 * @param group the group to with
+	 * @return this {@code OwnedEntity}
 	 */
 	public OwnedEntity withGroup(Object group) {
 		this.group = group;
