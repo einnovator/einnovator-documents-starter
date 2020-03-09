@@ -11,8 +11,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class OwnedEntity extends EntityBase {
-
-	protected OwnerType ownerType;
 	
 	protected String owner;
 
@@ -62,25 +60,6 @@ public class OwnedEntity extends EntityBase {
 	 */
 	public void setOwner(String owner) {
 		this.owner = owner;
-	}
-	
-
-	/**
-	 * Get the value of property {@code ownerType}.
-	 *
-	 * @return the ownerType
-	 */
-	public OwnerType getOwnerType() {
-		return ownerType;
-	}
-
-	/**
-	 * Set the value of property {@code ownerType}.
-	 *
-	 * @param ownerType the ownerType to set
-	 */
-	public void setOwnerType(OwnerType ownerType) {
-		this.ownerType = ownerType;
 	}
 
 	/**
@@ -134,18 +113,6 @@ public class OwnedEntity extends EntityBase {
 
 
 	/**
-	 * Set the value of property {@code ownerType}.
-	 *
-	 * @param ownerType the ownerType to with
-	 * @return this {@code OwnedEntity}
-	 */
-	public OwnedEntity withOwnerType(OwnerType ownerType) {
-		this.ownerType = ownerType;
-		return this;
-	}
-
-
-	/**
 	 * Set the value of property {@code user}.
 	 *
 	 * @param user the user to with
@@ -173,17 +140,8 @@ public class OwnedEntity extends EntityBase {
 	public ToStringCreator toString2(ToStringCreator creator) {
 		return super.toString2(creator
 				.append("owner", owner)
-				.append("ownerType", ownerType)
+				.append("groupId", groupId)
 				);
-	}
-
-	public boolean isOwnerUser() {
-		return ownerType==null || ownerType==OwnerType.USER;
-	}
-
-
-	public boolean isOwnerGroup() {
-		return ownerType==OwnerType.GROUP;
 	}
 
 	@JsonIgnore

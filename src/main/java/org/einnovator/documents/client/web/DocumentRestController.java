@@ -58,7 +58,9 @@ public class DocumentRestController extends ControllerBase {
 				return badrequest("download", response, path);
 			}
 
-			response.setContentLengthLong(document.getContentLength());
+			if (document.getContentLength()!=null) {
+				response.setContentLengthLong(document.getContentLength());				
+			}
 			if (StringUtils.hasText(document.getContentEncoding())) {
 				response.setCharacterEncoding(document.getContentEncoding());
 			}

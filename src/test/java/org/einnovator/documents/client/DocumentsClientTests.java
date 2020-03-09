@@ -10,6 +10,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -27,6 +28,7 @@ import org.einnovator.documents.client.config.DocumentsClientConfiguration;
 import org.einnovator.documents.client.model.Document;
 import org.einnovator.documents.client.modelx.DocumentOptions;
 import org.einnovator.sso.client.SsoTestHelper;
+import org.einnovator.util.MappingUtils;
 import org.einnovator.util.UriUtils;
 import org.einnovator.util.security.Authority;
 import org.junit.Test;
@@ -96,10 +98,12 @@ public class DocumentsClientTests extends SsoTestHelper {
 			FileOutputStream fos = new FileOutputStream(temp);
 			fos.write(content.getBytes(), 0, content.length());
 			fos.close();
-			Document document = new Document().withInputStream(new FileInputStream(temp)).withContentLength((long)content.length());
-			String name = tmp + temp.getName();
-			document.setPath(name);
-			document.setInfo("TestInfo.");
+			String path = tmp + temp.getName();
+			Document document = new Document()
+					.withPath(path)
+					.withInfo("Test...")
+					.withInputStream(new FileInputStream(temp))
+					.withContentLength((long)content.length());
 			temp.deleteOnExit();
 			return document;
 		} catch (IOException e) {
@@ -108,6 +112,26 @@ public class DocumentsClientTests extends SsoTestHelper {
 		return null;
 	}
 
+
+	@Test
+	public void writeReadStringTest() throws IOException {
+		String path = "/tmp/test.txt";
+		String content = "test content...";
+		Document document = new Document()
+				.withPath(path)
+				.withInfo("Test...")
+				.withInputStream(new ByteArrayInputStream(content.getBytes()))
+				.withContentLength((long)content.length());
+		URI uri = client.write(document, null, null);
+		assertNotNull(uri);
+		System.out.println(uri);
+		assertTrue(uri.toString().contains(document.getPath()));
+		Document document2 = client.read(uri, CONTENT_AND_META, null);
+		assertNotNull(document2);
+		assertNotNull(document2.getContent());
+		assertEquals(document.getContentLength(), document2.getContentLength());
+		client.delete(document.getPath(), DocumentOptions.FORCE, null);		
+	}
 
 	@Test
 	public void writeReadTest() throws IOException {
@@ -124,7 +148,7 @@ public class DocumentsClientTests extends SsoTestHelper {
 		assertEquals(document.getContentLength(), document2.getContentLength());
 		client.delete(document.getPath(), DocumentOptions.FORCE, null);		
 	}
-
+	
 	@Test
 	public void writrReadPublicDocumentTest() {
 		Document document = createTempDocument();
