@@ -41,6 +41,15 @@ public class DocumentFilter extends DocumentOptions {
 	 */
 	public DocumentFilter() {
 	}	
+	
+	/**
+	 * Create instance of {@code DocumentFilter}.
+	 *
+	 * @param obj a prototype
+	 */
+	public DocumentFilter(Object obj) {
+		super(obj);
+	}
 
 	//
 	// Getters/Setters

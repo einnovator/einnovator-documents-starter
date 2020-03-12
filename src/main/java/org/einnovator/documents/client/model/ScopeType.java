@@ -2,24 +2,24 @@ package org.einnovator.documents.client.model;
 
 
 /**
- * Enum for a type of {@code Document} sharing.
+ * Enum for the scope of a {@code Mount}.
  *
  * @author support@einnovator.org
  */
-public enum ShareType {
-	PRIVATE("Private"),
-	PUBLIC("Public"),
-	RESTRICTED("Restricted"),
-	ROLE("Role");
+public enum ScopeType {
+	GLOBAL("Global"),
+	USER("User"),
+	GROUP("Group")
+	;
 	
 	private final String displayValue;
 
 	/**
-	 * Create instance of {@code ShareType}.
+	 * Create instance of {@code ScopeType}.
 	 *
 	 * @param displayValue
 	 */
-	ShareType(String displayValue) {
+	ScopeType(String displayValue) {
 		this.displayValue = displayValue;
 	}
 

@@ -1,25 +1,32 @@
 package org.einnovator.documents.client.model;
 
-
 /**
- * Enum for a type of {@code Document} sharing.
+ * Enum for a type of {@code Store}.
  *
  * @author support@einnovator.org
  */
-public enum ShareType {
-	PRIVATE("Private"),
-	PUBLIC("Public"),
-	RESTRICTED("Restricted"),
-	ROLE("Role");
+public enum StoreType {
+	FS("FS"),
+	FEDERATION("Federation"),
+	S3("S3"),
+	DROPBOX("Dropbox"),
+	GDRIVE("GDrive"),
+	GCLOUD("GCloudStorage"),
+	AZURE("Azure"),
+	BLACKBLAZE("Backblaze"),
+	RACKSPACE_US("RackspaceUS"),
+	RACKSPACE_UK("RackspaceUK"),
+	SFTP("SFTP")
+	;
 	
 	private final String displayValue;
 
 	/**
-	 * Create instance of {@code ShareType}.
+	 * Create instance of {@code StoreType}.
 	 *
 	 * @param displayValue
 	 */
-	ShareType(String displayValue) {
+	StoreType(String displayValue) {
 		this.displayValue = displayValue;
 	}
 
@@ -40,5 +47,4 @@ public enum ShareType {
 	public String getDisplayName() {
 		return displayValue;
 	}
-
 }

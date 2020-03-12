@@ -104,6 +104,15 @@ public class DocumentOptions extends EntityOptions<Document> {
 	 */
 	public DocumentOptions() {
 	}
+	
+	/**
+	 * Create instance of {@code DocumentOptions}.
+	 *
+	 * @param obj a prototype
+	 */
+	public DocumentOptions(Object obj) {
+		super(obj);
+	}
 
 	/**
 	 * Create instance of {@code DocumentOptions}.

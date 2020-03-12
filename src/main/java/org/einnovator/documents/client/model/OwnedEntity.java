@@ -1,7 +1,6 @@
 package org.einnovator.documents.client.model;
 
 import org.einnovator.util.model.EntityBase;
-import org.einnovator.util.model.OwnerType;
 import org.einnovator.util.model.ToStringCreator;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
