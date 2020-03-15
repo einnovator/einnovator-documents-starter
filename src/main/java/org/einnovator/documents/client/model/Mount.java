@@ -371,6 +371,7 @@ public class Mount extends OwnedEntity {
 	 * Set the value of property {@code id}.
 	 *
 	 * @param id the value of property id
+	 * @return this {@code Mount}
 	 */
 	public Mount withId(String id) {
 		this.id = id;
@@ -381,6 +382,7 @@ public class Mount extends OwnedEntity {
 	 * Set the value of property {@code type}.
 	 *
 	 * @param type the value of property type
+	 * @return this {@code Mount}
 	 */
 	public Mount withType(StoreType type) {
 		this.type = type;
@@ -391,6 +393,7 @@ public class Mount extends OwnedEntity {
 	 * Set the value of property {@code path}.
 	 *
 	 * @param path the value of property path
+	 * @return this {@code Mount}
 	 */
 	public Mount withPath(String path) {
 		this.path = path;
@@ -401,6 +404,7 @@ public class Mount extends OwnedEntity {
 	 * Set the value of property {@code name}.
 	 *
 	 * @param name the value of property name
+	 * @return this {@code Mount}
 	 */
 	public Mount withName(String name) {
 		this.name = name;
@@ -411,6 +415,7 @@ public class Mount extends OwnedEntity {
 	 * Set the value of property {@code scope}.
 	 *
 	 * @param scope the value of property scope
+	 * @return this {@code Mount}
 	 */
 	public Mount withScope(ScopeType scope) {
 		this.scope = scope;
@@ -421,6 +426,7 @@ public class Mount extends OwnedEntity {
 	 * Set the value of property {@code profiles}.
 	 *
 	 * @param profiles the value of property profiles
+	 * @return this {@code Mount}
 	 */
 	public Mount withProfiles(String profiles) {
 		this.profiles = profiles;
@@ -432,6 +438,7 @@ public class Mount extends OwnedEntity {
 	 * Set the value of property {@code root}.
 	 *
 	 * @param root the value of property root
+	 * @return this {@code Mount}
 	 */
 	public Mount withRoot(String root) {
 		this.root = root;
@@ -443,6 +450,7 @@ public class Mount extends OwnedEntity {
 	 * Set the value of property {@code properties}.
 	 *
 	 * @param properties the value of property properties
+	 * @return this {@code Mount}
 	 */
 	public Mount withProperties(Map<String, Object> properties) {
 		this.properties = properties;
@@ -453,6 +461,7 @@ public class Mount extends OwnedEntity {
 	 * Set the value of property {@code description}.
 	 *
 	 * @param description the value of property description
+	 * @return this {@code Mount}
 	 */
 	public Mount withDescription(String description) {
 		this.description = description;
@@ -463,6 +472,7 @@ public class Mount extends OwnedEntity {
 	 * Set the value of property {@code icon}.
 	 *
 	 * @param icon the value of property icon
+	 * @return this {@code Mount}
 	 */
 	public Mount withIcon(String icon) {
 		this.icon = icon;
@@ -473,6 +483,7 @@ public class Mount extends OwnedEntity {
 	 * Set the value of property {@code img}.
 	 *
 	 * @param img the value of property img
+	 * @return this {@code Mount}
 	 */
 	public Mount withImg(String img) {
 		this.img = img;
@@ -483,6 +494,7 @@ public class Mount extends OwnedEntity {
 	 * Set the value of property {@code enabled}.
 	 *
 	 * @param enabled the value of property enabled
+	 * @return this {@code Mount}
 	 */
 	public Mount withEnabled(Boolean enabled) {
 		this.enabled = enabled;
@@ -493,6 +505,7 @@ public class Mount extends OwnedEntity {
 	 * Set the value of property {@code readonly}.
 	 *
 	 * @param readonly the value of property readonly
+	 * @return this {@code Mount}
 	 */
 	public Mount withReadonly(Boolean readonly) {
 		this.readonly = readonly;
@@ -503,6 +516,7 @@ public class Mount extends OwnedEntity {
 	 * Set the value of property {@code versioned}.
 	 *
 	 * @param versioned the value of property versioned
+	 * @return this {@code Mount}
 	 */
 	public Mount withVersioned(Boolean versioned) {
 		this.versioned = versioned;
@@ -513,6 +527,7 @@ public class Mount extends OwnedEntity {
 	 * Set the value of property {@code autocreate}.
 	 *
 	 * @param autocreate the value of property autocreate
+	 * @return this {@code Mount}
 	 */
 	public Mount withAutocreate(Boolean autocreate) {
 		this.autocreate = autocreate;
@@ -524,6 +539,7 @@ public class Mount extends OwnedEntity {
 	 * Set the value of property {@code order}.
 	 *
 	 * @param order the value of property order
+	 * @return this {@code Mount}
 	 */
 	public Mount withOrder(int order) {
 		this.order = order;

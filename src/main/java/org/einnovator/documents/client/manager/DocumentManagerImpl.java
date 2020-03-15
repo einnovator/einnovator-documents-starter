@@ -7,7 +7,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.einnovator.documents.client.DocumentsClient;
 import org.einnovator.documents.client.config.DocumentsClientConfiguration;
-import org.einnovator.documents.client.config.DocumentsClientContext;
+
 import org.einnovator.documents.client.model.Document;
 import org.einnovator.documents.client.modelx.DocumentFilter;
 import org.einnovator.documents.client.modelx.DocumentOptions;
@@ -44,9 +44,9 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 
 
 	@Override
-	public URI write(Document document, DocumentOptions options, DocumentsClientContext context) {
+	public URI write(Document document, DocumentOptions options) {
 		try {
-			return client.write(document, options, context);
+			return client.write(document, options);
 		} catch (RuntimeException e) {
 			logger.error(String.format("write: %s %s %s",  e, document!=null ? document.getPath() : null, options));
 			return null;
@@ -54,9 +54,9 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 	}
 
 	@Override
-	public Document read(String path, DocumentOptions options, DocumentsClientContext context) {
+	public Document read(String path, DocumentOptions options) {
 		try {
-			return client.read(path, options, context);
+			return client.read(path, options);
 		} catch (RuntimeException e) {
 			logger.error(String.format("read: %s %s %s",  e, path, options));
 			return null;
@@ -65,9 +65,9 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 
 	
 	@Override
-	public Document read(URI uri, DocumentOptions options, DocumentsClientContext context) {
+	public Document read(URI uri, DocumentOptions options) {
 		try {
-			return client.read(uri, options, context);
+			return client.read(uri, options);
 		} catch (RuntimeException e) {
 			logger.error(String.format("read: %s %s %s",  e, uri, options));
 			return null;
@@ -77,9 +77,9 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 
 
 	@Override
-	public byte[] content(URI uri, DocumentOptions options, String contentType, DocumentsClientContext context) {
+	public byte[] content(URI uri, DocumentOptions options, String contentType) {
 		try {
-			return client.content(uri, options, contentType, context);
+			return client.content(uri, options, contentType);
 		} catch (RuntimeException e) {
 			logger.error(String.format("content: %s %s %s %s",  e, uri, options, contentType));
 			return null;
@@ -88,9 +88,9 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 
 
 	@Override
-	public List<Document> list(String path, DocumentFilter filter, Pageable pageable, DocumentsClientContext context) {
+	public List<Document> list(String path, DocumentFilter filter, Pageable pageable) {
 		try {
-			return client.list(path, filter, pageable, context);
+			return client.list(path, filter, pageable);
 		} catch (RuntimeException e) {
 			logger.error(String.format("list: %s %s %s %s",  e, path, filter, pageable));
 			return null;
@@ -98,9 +98,9 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 	}
 
 	@Override
-	public boolean delete(String path, DocumentOptions options, DocumentsClientContext context) {
+	public boolean delete(String path, DocumentOptions options) {
 		try {
-			client.delete(path, options, context);
+			client.delete(path, options);
 			return true;
 		} catch (RuntimeException e) {
 			logger.error(String.format("delete: %s %s %s",  e, path, options));
@@ -110,9 +110,9 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 
 
 	@Override
-	public boolean delete(URI uri, DocumentOptions options, DocumentsClientContext context) {
+	public boolean delete(URI uri, DocumentOptions options) {
 		try {
-			client.delete(uri, options, context);
+			client.delete(uri, options);
 			return true;
 		} catch (RuntimeException e) {
 			logger.error(String.format("delete: %s %s %s",  e, uri, options));
@@ -123,9 +123,9 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 
 	
 	@Override
-	public Document restore(String path, DocumentOptions options, DocumentsClientContext context) {
+	public Document restore(String path, DocumentOptions options) {
 		try {
-			return client.restore(path, options, context);
+			return client.restore(path, options);
 		} catch (RuntimeException e) {
 			logger.error(String.format("restore: %s %s %s", e, path, options));
 			return null;
@@ -133,9 +133,9 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 	}
 
 	@Override
-	public Document restore(URI uri, DocumentOptions options, DocumentsClientContext context) {
+	public Document restore(URI uri, DocumentOptions options) {
 		try {
-			return client.restore(uri, options, context);
+			return client.restore(uri, options);
 		} catch (RuntimeException e) {
 			logger.error(String.format("restore: %s %s %s", e, uri, options));
 			return null;
@@ -144,9 +144,9 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 
 
 	@Override
-	public URI mkdir(String path, DocumentOptions options, DocumentsClientContext context) {
+	public URI mkdir(String path, DocumentOptions options) {
 		try {
-			return client.mkdir(path, options, context);
+			return client.mkdir(path, options);
 		} catch (RuntimeException e) {
 			logger.error(String.format("mkdir: %s %s %s", e, path, options));
 			return null;
@@ -155,9 +155,9 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 
 
 	@Override
-	public URI copy(String path, String destPath, DocumentOptions options, DocumentsClientContext context) {
+	public URI copy(String path, String destPath, DocumentOptions options) {
 		try {
-			return client.copy(path, destPath, options, context);
+			return client.copy(path, destPath, options);
 		} catch (RuntimeException e) {
 			logger.error(String.format("copy: %s %s", e, path));
 			return null;
@@ -166,9 +166,9 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 
 
 	@Override
-	public URI move(String path, String destPath, DocumentOptions options, DocumentsClientContext context) {
+	public URI move(String path, String destPath, DocumentOptions options) {
 		try {
-			return client.move(path, destPath, options, context);
+			return client.move(path, destPath, options);
 		} catch (RuntimeException e) {
 			logger.error(String.format("move: %s %s %s %s", e, path, destPath, options));
 			return null;
@@ -177,9 +177,9 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 
 
 	@Override
-	public URI addAuthority(String path, Authority authority, DocumentOptions options, DocumentsClientContext context) {
+	public URI addAuthority(String path, Authority authority, DocumentOptions options) {
 		try {
-			return client.addAuthority(path, authority, options, context);
+			return client.addAuthority(path, authority, options);
 		} catch (RuntimeException e) {
 			logger.error(String.format("share: %s %s %s %s", e, path, authority, options));
 			return null;
@@ -187,9 +187,9 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 	}
 
 	@Override
-	public boolean removeAuthority(String path, String id, DocumentOptions options, DocumentsClientContext context) {
+	public boolean removeAuthority(String path, String id, DocumentOptions options) {
 		try {
-			client.removeAuthority(path, id, options, context);
+			client.removeAuthority(path, id, options);
 			return true;
 		} catch (RuntimeException e) {
 			logger.error(String.format("share: %s %s %s %s", e, path, id, options));
@@ -200,12 +200,12 @@ public class DocumentManagerImpl extends ManagerBase implements DocumentManager 
 	
 	
 	@Override
-	public void onDocumentUpdate(String path, DocumentsClientContext context) {
+	public void onDocumentUpdate(String path) {
 		evictCaches(path);
 	}
 
 	@Override
-	public void onFolderUpdate(String path, DocumentsClientContext context) {
+	public void onFolderUpdate(String path) {
 		evictCaches(path);
 	}
 

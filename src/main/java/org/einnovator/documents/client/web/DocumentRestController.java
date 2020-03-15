@@ -52,7 +52,7 @@ public class DocumentRestController extends ControllerBase {
 	 			debug("download", path, principal.getName());				
 			}
 
-			Document document = manager.read(path, options, null);
+			Document document = manager.read(path, options);
 
 			if (document == null) {
 				return badrequest("download", response, path);
@@ -86,9 +86,9 @@ public class DocumentRestController extends ControllerBase {
 	
 	protected Document read(String path, DocumentOptions options) {
 		if (isLocal(path)) {
-			return documentManagerLocal.read(path, options, null);
+			return documentManagerLocal.read(path, options);
 		}
-		Document document = manager.read(path, options, null);
+		Document document = manager.read(path, options);
 		return document;
 	}
 	
@@ -109,7 +109,7 @@ public class DocumentRestController extends ControllerBase {
 		String path = getPath(request, "/api/__/");
 		setupToken(principal, authentication);
 		
-		List<Document> documents = manager.list(path, filter, options.toPageRequest(), null);
+		List<Document> documents = manager.list(path, filter, options.toPageRequest());
 		
 		if (logger.isDebugEnabled()) {
  			debug("list", path, documents!=null ? documents.size() : null);				
@@ -127,7 +127,7 @@ public class DocumentRestController extends ControllerBase {
 		String path = getPath(request, "/api/_meta/");
 
 		setupToken(principal, authentication);
-		Document document = manager.read(path, options, null);
+		Document document = manager.read(path, options);
 		
 		if (document==null) {
 			return notfound("meta", response, path);
@@ -143,7 +143,7 @@ public class DocumentRestController extends ControllerBase {
 		
 		try {
 			setupToken(principal, authentication);
-			URI uri = manager.mkdir(path, options, null);
+			URI uri = manager.mkdir(path, options);
 			if (uri==null) {
 				return badrequest("mkdir", response, path);
 			}
@@ -162,7 +162,7 @@ public class DocumentRestController extends ControllerBase {
 
 		try {
 			setupToken(principal, authentication);
-			if (!manager.delete(path, options, null)) {
+			if (!manager.delete(path, options)) {
 				return notfound("delete", response, path);
 			}
 			return nocontent("delete", response, path);

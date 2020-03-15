@@ -15,7 +15,7 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.einnovator.documents.client.config.DocumentsClientConfiguration;
-import org.einnovator.documents.client.config.DocumentsClientContext;
+
 import org.einnovator.documents.client.config.DocumentsEndpoints;
 import org.einnovator.documents.client.manager.DocumentManager;
 import org.einnovator.documents.client.model.Document;
@@ -23,6 +23,7 @@ import org.einnovator.documents.client.modelx.DocumentFilter;
 import org.einnovator.documents.client.modelx.DocumentOptions;
 import org.einnovator.util.UriUtils;
 import org.einnovator.util.security.Authority;
+import org.einnovator.util.web.RequestOptions;
 import org.einnovator.util.web.Result;
 import org.einnovator.util.web.WebUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -191,11 +192,11 @@ public class DocumentsClient {
 
 	 * @param document the {@code Document}
 	 * @param options optional {@code DocumentOptions}
-	 * @param context optional {@code DocumentsClientContext}
+	 
 	 * @return the location {@code URI} for the written {@code Document}
 	 * @throws RestClientException if request fails
 	 */
-	public URI write(Document document, DocumentOptions options, DocumentsClientContext context) {
+	public URI write(Document document, DocumentOptions options) {
 		try {
 			String path = document.getPath();
 			URI uri = makeURI(DocumentsEndpoints.upload(path, config));
@@ -252,7 +253,7 @@ public class DocumentsClient {
 
 			HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<>(map, headers);
 
-			URI response = postForLocation(uri, requestEntity, context);
+			URI response = postForLocation(uri, requestEntity, options);
 			return response;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -284,13 +285,13 @@ public class DocumentsClient {
 	 * 
 	 * @param path the {@code Document} path in the tree of the user (the principal, by default)
 	 * @param options optional {@code DocumentOptions}
-	 * @param context optional {@code DocumentsClientContext}
+	 
 	 * @return the {@code Document}
 	 * @throws RestClientException if request fails
 	 */
-	public Document read(String path, DocumentOptions options, DocumentsClientContext context) {
+	public Document read(String path, DocumentOptions options) {
 		URI uri = makeURI(DocumentsEndpoints.download(path, config));
-		return read(uri, options, context);
+		return read(uri, options);
 	}
 
 	/**
@@ -301,11 +302,11 @@ public class DocumentsClient {
 	 * 
 	 * @param uri the {@code URI} of the {@code Document}
 	 * @param options optional {@code DocumentOptions}
-	 * @param context optional {@code DocumentsClientContext}
+	 
 	 * @return the {@code Document}
 	 * @throws RestClientException if request fails
 	 */
-	public Document read(URI uri, DocumentOptions options, DocumentsClientContext context) {
+	public Document read(URI uri, DocumentOptions options) {
 		Document document = null;
 
 		if (DocumentOptions.isMeta(options)) {
@@ -315,13 +316,13 @@ public class DocumentsClient {
 			}
 			UriUtils.appendQueryParameters(metaUri, options);
 			RequestEntity<Void> request = RequestEntity.get(metaUri).accept(MediaType.APPLICATION_JSON).build();
-			ResponseEntity<Document> response = exchange(request, Document.class, context);			
+			ResponseEntity<Document> response = exchange(request, Document.class, options);			
 			document = response.getBody();
 		}
 
 		if (DocumentOptions.isContent(options)) {
 				String contentType = document != null ? document.getContentType() : null;
-				byte[] bytes = content(uri, options, contentType, context);
+				byte[] bytes = content(uri, options, contentType);
 				if (bytes != null) {
 					if (document==null) {
 						document = new Document(uri, bytes);
@@ -356,11 +357,11 @@ public class DocumentsClient {
 	 * @param uri the {@code URI} of the {@code Document}
 	 * @param options optional {@code DocumentOptions}
 	 * @param contentType the requested content type
-	 * @param context optional {@code DocumentsClientContext}
+	 
 	 * @return the content
 	 * @throws RestClientException if request fails
 	 */
-	public byte[] content(URI uri, DocumentOptions options, String contentType, DocumentsClientContext context) {
+	public byte[] content(URI uri, DocumentOptions options, String contentType) {
 		uri = UriUtils.appendQueryParameters(uri, options);
 		HeadersBuilder<?> builder = RequestEntity.get(uri);
 		if (!StringUtils.hasText(contentType)) {
@@ -368,7 +369,7 @@ public class DocumentsClient {
 		}
 		builder.accept(MediaType.valueOf(contentType));
 		RequestEntity<Void> request = builder.build();
-		ResponseEntity<byte[]> response = exchange(request, byte[].class, context);
+		ResponseEntity<byte[]> response = exchange(request, byte[].class, options);
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("content: %s %s", uri, response.getBody().length));			
 		}
@@ -383,16 +384,16 @@ public class DocumentsClient {
 	 * @param path the folder path in the tree of the user (the principal, by default)
 	 * @param filter a {@code DocumentFilter}
 	 * @param pageable a {@code Pageable} (optional)
-	 * @param context optional {@code DocumentsClientContext}
+	 
 	 * @throws RestClientException if request fails
 	 * @return a {@code List} with {@code Document}s
 	 * @throws RestClientException if request fails
 	 */
-	public List<Document> list(String path, DocumentFilter filter, Pageable pageable, DocumentsClientContext context) {
+	public List<Document> list(String path, DocumentFilter filter, Pageable pageable) {
 		URI uri = makeURI(DocumentsEndpoints.list(path, config));
 		uri = processURI(uri, filter, pageable);
 		RequestEntity<Void> request = RequestEntity.get(uri).accept(MediaType.APPLICATION_JSON).build();
-		ResponseEntity<Document[]> response = exchange(request, Document[].class, context);
+		ResponseEntity<Document[]> response = exchange(request, Document[].class, filter);
 		if (response.getStatusCode() == HttpStatus.OK) {
 			Document[] documents = response.getBody();
 			return Arrays.asList(documents);
@@ -409,12 +410,12 @@ public class DocumentsClient {
 	 * 
 	 * @param path the {@code Document} path in the tree of the user (the principal, by default)
 	 * @param options optional {@code RequestOptions}
-	 * @param context optional {@code SocialClientContext}
+	 
 	 * @throws RestClientException if request fails
 	 */
-	public void delete(String path, DocumentOptions options, DocumentsClientContext context) {
+	public void delete(String path, DocumentOptions options) {
 		URI uri = makeURI(DocumentsEndpoints.delete(path, config));
-		delete(uri, options, context);
+		delete(uri, options);
 	}
 
 	/**
@@ -425,13 +426,13 @@ public class DocumentsClient {
 	 * 
 	 * @param uri the {@code URI} of the {@code Document}
 	 * @param options optional {@code RequestOptions}
-	 * @param context optional {@code SocialClientContext}
+	 
 	 * @throws RestClientException if request fails
 	 */
-	public void delete(URI uri, DocumentOptions options, DocumentsClientContext context) {		
+	public void delete(URI uri, DocumentOptions options) {		
 		uri = appendQueryParameters(uri, options);
 		RequestEntity<Void> request = RequestEntity.delete(uri).build();
-		exchange(request, Void.class, context);
+		exchange(request, Void.class, options);
 	}
 
 	/**
@@ -442,15 +443,14 @@ public class DocumentsClient {
 	 * 
 	 * @param path the {@code Document} path in the tree of the user (the principal, by default)
 	 * @param options optional {@code RequestOptions}
-	 * @param context optional {@code SocialClientContext}
 	 * @return the restored {@code Document} meta-data
 	 * @throws RestClientException if request fails
 	 */
-	public Document restore(String path, DocumentOptions options, DocumentsClientContext context) {
+	public Document restore(String path, DocumentOptions options) {
 		URI uri = makeURI(DocumentsEndpoints.restore(path, config));
 		uri = appendQueryParameters(uri, options);
 		RequestEntity<Void> request = RequestEntity.get(uri).accept(MediaType.APPLICATION_JSON).build();
-		ResponseEntity<Document> response = exchange(request, Document.class, context);
+		ResponseEntity<Document> response = exchange(request, Document.class, options);
 		return response.getBody();
 	}
 
@@ -463,12 +463,11 @@ public class DocumentsClient {
 	 * 
 	 * @param uri the {@code URI} of the {@code Document}
 	 * @param options optional {@code RequestOptions}
-	 * @param context optional {@code SocialClientContext}
 	 * @return the restored {@code Document} meta-data
 	 * @throws RestClientException if request fails
 	 */
-	public Document restore(URI uri, DocumentOptions options, DocumentsClientContext context) {
-		return restore(getPath(uri), options, context);
+	public Document restore(URI uri, DocumentOptions options) {
+		return restore(getPath(uri), options);
 	}
 
 	/**
@@ -476,18 +475,16 @@ public class DocumentsClient {
 	 * 
 	 * <p><b>Required Security Credentials</b>: Client, Admin (global role ADMIN), or owner of parent folder.
 	 * <br>Role {@code DOCUMENT_MANAGER} if role-based access-control is enabled for the parent folder.
-
 	 * @param path the folder path in the tree of the user (the principal, by default)
 	 * @param options optional {@code DocumentOptions}
-	 * @param context optional {@code DocumentsClientContext}
 	 * @return the location {@code URI} for the written folder 
 	 * @throws RestClientException if request fails
 	 */
-	public URI mkdir(String path, DocumentOptions options, DocumentsClientContext context) {
+	public URI mkdir(String path, DocumentOptions options) {
 		URI uri = makeURI(DocumentsEndpoints.folder(path, config));
 		uri = appendQueryParameters(uri, options);
 		RequestEntity<Void> request = RequestEntity.post(uri).accept(MediaType.APPLICATION_JSON).build();
-		ResponseEntity<?> response = exchange(request, Void.class, context);
+		ResponseEntity<?> response = exchange(request, Void.class, options);
 		return response.getHeaders().getLocation();
 	}
 	
@@ -501,18 +498,17 @@ public class DocumentsClient {
 	 * @param path the source {@code Document} path, in the tree of the user (the principal, by default)
 	 * @param destPath the path where to write the {@code Document} copy path, in the tree of the user (the principal, by default)
 	 * @param options optional {@code RequestOptions}
-	 * @param context optional {@code SocialClientContext}
 	 * @return the location {@code URI} for the {@code Document} copy
 	 * @throws RestClientException if request fails
 	 */
-	public URI copy(String path, String destPath, DocumentOptions options, DocumentsClientContext context) {
+	public URI copy(String path, String destPath, DocumentOptions options) {
 		URI uri = makeURI(DocumentsEndpoints.copy(path, config));
 		uri = appendQueryParameters(uri, options);
 		destPath = UriUtils.encode(destPath, DocumentsClientConfiguration.DEFAULT_ENCODING);
 		uri = appendQueryParameter(uri, "path", destPath);
 
 		RequestEntity<Void> request = RequestEntity.post(uri).accept(MediaType.APPLICATION_JSON).build();
-		ResponseEntity<?> response = exchange(request, Void.class, context);
+		ResponseEntity<?> response = exchange(request, Void.class, options);
 		return response.getHeaders().getLocation();
 	}
 
@@ -525,18 +521,17 @@ public class DocumentsClient {
 	 * 
 	 * @param path the original {@code Document} path, in the tree of the user (the principal, by default)
 	 * @param destPath the path where to move the {@code Document}, in the tree of the user (the principal, by default)
-	 * @param options optional {@code RequestOptions}
-	 * @param context optional {@code SocialClientContext}
+	 * @param options optional {@code RequestOptions} 
 	 * @return the new location {@code URI} for the {@code Document}
 	 * @throws RestClientException if request fails
 	 */
-	public URI move(String path, String destPath, DocumentOptions options, DocumentsClientContext context) {
+	public URI move(String path, String destPath, DocumentOptions options) {
 		URI uri = makeURI(DocumentsEndpoints.move(path, config));
 		uri = appendQueryParameters(uri, options);
 		destPath = UriUtils.encode(destPath, DocumentsClientConfiguration.DEFAULT_ENCODING);
 		uri = appendQueryParameter(uri, "path", destPath);
 		RequestEntity<Void> request = RequestEntity.post(uri).accept(MediaType.APPLICATION_JSON).build();
-		ResponseEntity<?> response = exchange(request, Void.class, context);
+		ResponseEntity<?> response = exchange(request, Void.class, options);
 		return response.getHeaders().getLocation();
 	}
 
@@ -549,18 +544,17 @@ public class DocumentsClient {
 	 * 
 	 * @param path the {@code Document} path, in the tree of the user (the principal, by default)
 	 * @param authority the  {@code Authority}
-	 * @param options optional {@code RequestOptions}
-	 * @param context optional {@code SocialClientContext}
+	 * @param options optional {@code RequestOptions} 
 	 * @return the {@code URI} that uniquely identifies the {@code Authority}
 	 * @throws RestClientException if request fails
 	 */
-	public URI addAuthority(String path, Authority authority, DocumentOptions options, DocumentsClientContext context) {
+	public URI addAuthority(String path, Authority authority, DocumentOptions options) {
 		URI uri = makeURI(DocumentsEndpoints.authorities(path, config));
 		uri = appendQueryParameters(uri, options);
 		Document document = new Document();
 		document.setPath(path);
 		RequestEntity<Authority> request = RequestEntity.post(uri).contentType(MediaType.APPLICATION_JSON).body(authority);
-		ResponseEntity<?> response = exchange(request, Void.class, context);
+		ResponseEntity<?> response = exchange(request, Void.class, options);
 		return response.getHeaders().getLocation();
 	}
 
@@ -570,17 +564,16 @@ public class DocumentsClient {
 	 * @param path the {@code Document} path, in the tree of the user (the principal, by default)
 	 * @param id the  {@code Authority} identifier (UUID)
 	 * @param options optional {@code RequestOptions}
-	 * @param context optional {@code SocialClientContext}
 	 * @throws RestClientException if request fails
 	 */
-	public void removeAuthority(String path, String id, DocumentOptions options, DocumentsClientContext context) {
+	public void removeAuthority(String path, String id, DocumentOptions options) {
 		URI uri = makeURI(DocumentsEndpoints.authorities(path, config));
 		uri = appendQueryParameter(uri, "id", id);
 		uri = processURI(uri, options);
 		Document document = new Document();
 		document.setPath(path);
 		RequestEntity<Void> request = RequestEntity.delete(uri).build();
-		exchange(request, Void.class, context);
+		exchange(request, Void.class, options);
 	}
 
 	//
@@ -594,18 +587,18 @@ public class DocumentsClient {
 	 * @param <T> response type
 	 * @param request the {@code RequestEntity}
 	 * @param responseType the response type
-	 * @param context optional {@code SsoClientContext}
+	 * @param options optional {@code SsoClientContext}
 	 * @return result {@code ResponseEntity}
 	 * @throws RestClientException if request fails
 	 */
-	protected <T> ResponseEntity<T> exchange(RequestEntity<?> request, Class<T> responseType, DocumentsClientContext context) throws RestClientException {
-		OAuth2RestTemplate restTemplate = getRequiredRestTemplate(context);
+	protected <T> ResponseEntity<T> exchange(RequestEntity<?> request, Class<T> responseType, RequestOptions options) throws RestClientException {
+		OAuth2RestTemplate restTemplate = getRequiredRestTemplate();
 
 		try {
 			return exchange(restTemplate, request, responseType);			
 		} catch (RuntimeException e) {
-			if (context!=null && !context.isSingleton()) {
-				context.setResult(new Result<Object>(e));
+			if (options!=null && !options.isSingleton()) {
+				options.setResult(new Result<Object>(e));
 			}
 			throw e;
 		}
@@ -616,17 +609,17 @@ public class DocumentsClient {
 	 * 
 	 * @param uri the request {@code URI}
 	 * @param request the {@code HttpEntity}
-	 * @param context optional {@code SsoClientContext}
+	 * @param options optional {@code SsoClientContext}
 	 * @return result {@code ResponseEntity}
 	 * @throws RestClientException if request fails
 	 */
-	protected URI postForLocation(URI uri, HttpEntity<LinkedMultiValueMap<String, Object>> request, DocumentsClientContext context) throws RestClientException {
-		OAuth2RestTemplate restTemplate = getRequiredRestTemplate(context);
+	protected URI postForLocation(URI uri, HttpEntity<LinkedMultiValueMap<String, Object>> request, RequestOptions options) throws RestClientException {
+		OAuth2RestTemplate restTemplate = getRequiredRestTemplate();
 		try {
 			return postForLocation(restTemplate, uri, request);			
 		} catch (RuntimeException e) {
-			if (context!=null && !context.isSingleton()) {
-				context.setResult(new Result<Object>(e));
+			if (options!=null && !options.isSingleton()) {
+				options.setResult(new Result<Object>(e));
 			}
 			throw e;
 		}
@@ -635,23 +628,18 @@ public class DocumentsClient {
 	/**
 	 * Get the {@code OAuth2RestTemplate} to use to perform a request.
 	 * 
-	 * If the context is not null, returns the {@code OAuth2RestTemplate} specified by the context (if any).
+	 * If the options is not null, returns the {@code OAuth2RestTemplate} specified by the options (if any).
 	 * Otherwise, return the configured {@code OAuth2RestTemplate} in property {@link #restTemplate}.
 	 * If property {@link web} is true, check if current thread is bound to a web request with a session-scope. If not, fallback
 	 * to client credential {@code OAuth2RestTemplate} in property {@link #restTemplate0} or create one if needed.
 	 * 
-	 * @param context optional {@code SsoClientContext}
 	 * @return the {@code OAuth2RestTemplate}
 	 */
-	protected OAuth2RestTemplate getRequiredRestTemplate(DocumentsClientContext context) {
+	protected OAuth2RestTemplate getRequiredRestTemplate() {
 		OAuth2RestTemplate restTemplate = this.restTemplate;
-		if (context!=null && context.getRestTemplate()!=null) {
-			restTemplate = context.getRestTemplate();
-		} else {
-			if (WebUtil.getHttpServletRequest()==null && this.restTemplate0!=null) {
-				restTemplate = this.restTemplate0;
-			}			
-		}
+		if (WebUtil.getHttpServletRequest()==null && this.restTemplate0!=null) {
+			restTemplate = this.restTemplate0;
+		}			
 		return restTemplate;
 	}
 	

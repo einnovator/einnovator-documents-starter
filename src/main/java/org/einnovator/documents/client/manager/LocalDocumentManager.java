@@ -14,7 +14,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.einnovator.documents.client.config.DocumentsClientConfiguration;
-import org.einnovator.documents.client.config.DocumentsClientContext;
+
 import org.einnovator.documents.client.model.Document;
 import org.einnovator.documents.client.modelx.DocumentFilter;
 import org.einnovator.documents.client.modelx.DocumentOptions;
@@ -53,7 +53,7 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 
 
 	@Override
-	public URI write(Document document, DocumentOptions options, DocumentsClientContext context) {
+	public URI write(Document document, DocumentOptions options) {
 		try {
 			String lpath = getLocalPath(document);
 			byte[] content = document.getOrReadContent();
@@ -116,7 +116,7 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 	}
 
 	@Override
-	public Document read(String path, DocumentOptions options, DocumentsClientContext context) {
+	public Document read(String path, DocumentOptions options) {
 		try {
 			String lpath = getLocalPath(path);
 			File file = new File(lpath);
@@ -143,10 +143,10 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 
 	
 	@Override
-	public Document read(URI uri, DocumentOptions options, DocumentsClientContext context) {
+	public Document read(URI uri, DocumentOptions options) {
 		try {
 			String path = uri.getPath();
-			return read(path, options, context);
+			return read(path, options);
 		} catch (RuntimeException e) {
 			logger.error(String.format("read: %s %s %s",  e, uri, options));
 			return null;
@@ -156,14 +156,14 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 
 
 	@Override
-	public byte[] content(URI uri, DocumentOptions options, String contentType, DocumentsClientContext context) {
-		Document document = read(uri, options, context);
+	public byte[] content(URI uri, DocumentOptions options, String contentType) {
+		Document document = read(uri, options);
 		return document!=null ? document.getOrReadContent() : null;
 	}
 
 
 	@Override
-	public List<Document> list(String path, DocumentFilter filter, Pageable pageable, DocumentsClientContext context) {
+	public List<Document> list(String path, DocumentFilter filter, Pageable pageable) {
 		try {
 			String lpath = getLocalPath(path);
 			List<Document> documents = new ArrayList<>();
@@ -214,7 +214,7 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 	}
 
 	@Override
-	public boolean delete(String path, DocumentOptions options, DocumentsClientContext context) {
+	public boolean delete(String path, DocumentOptions options) {
 		try {
 			String lpath = getLocalPath(path);
 			File file = new File(lpath);
@@ -237,8 +237,8 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 
 
 	@Override
-	public boolean delete(URI uri, DocumentOptions options, DocumentsClientContext context) {
-		return delete(getPath(uri), options, context);
+	public boolean delete(URI uri, DocumentOptions options) {
+		return delete(getPath(uri), options);
 	}
 
 	
@@ -248,7 +248,7 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 
 	
 	@Override
-	public Document restore(String path, DocumentOptions options, DocumentsClientContext context) {
+	public Document restore(String path, DocumentOptions options) {
 		try {
 			return null;
 		} catch (RuntimeException e) {
@@ -258,13 +258,13 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 	}
 
 	@Override
-	public Document restore(URI uri, DocumentOptions options, DocumentsClientContext context) {
-		return restore(getPath(uri), options, context);
+	public Document restore(URI uri, DocumentOptions options) {
+		return restore(getPath(uri), options);
 	}
 
 
 	@Override
-	public URI mkdir(String path, DocumentOptions options, DocumentsClientContext context) {
+	public URI mkdir(String path, DocumentOptions options) {
 		try {
 			String lpath = getLocalPath(path);
 			if (logger.isDebugEnabled()) {
@@ -303,14 +303,14 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 	}
 
 	@Override
-	public URI copy(String path, String destPath, DocumentOptions options, DocumentsClientContext context) {
+	public URI copy(String path, String destPath, DocumentOptions options) {
 		try {
-			Document document = read(path, options, context);
+			Document document = read(path, options);
 			if (document==null) {
 				return null;
 			}
 			document.setPath(destPath);
-			return write(document, options, context);
+			return write(document, options);
 		} catch (RuntimeException e) {
 			logger.error(String.format("copy: %s %s", e, path));
 			return null;
@@ -319,18 +319,18 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 
 
 	@Override
-	public URI move(String path, String destPath, DocumentOptions options, DocumentsClientContext context) {
+	public URI move(String path, String destPath, DocumentOptions options) {
 		try {
-			Document document = read(path, options, context);
+			Document document = read(path, options);
 			if (document==null) {
 				return null;
 			}
 			document.setPath(destPath);
-			URI uri = write(document, options, context);
+			URI uri = write(document, options);
 			if (uri!=null) {
 				return null;
 			}
-			if (!delete(path, options, context)) {
+			if (!delete(path, options)) {
 				return null;
 			}
 			return uri;
@@ -342,7 +342,7 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 
 
 	@Override
-	public URI addAuthority(String path, Authority authority, DocumentOptions options, DocumentsClientContext context) {
+	public URI addAuthority(String path, Authority authority, DocumentOptions options) {
 		try {
 			return null;
 		} catch (RuntimeException e) {
@@ -352,7 +352,7 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 	}
 	
 	@Override
-	public boolean removeAuthority(String path, String id, DocumentOptions options, DocumentsClientContext context) {
+	public boolean removeAuthority(String path, String id, DocumentOptions options) {
 		try {
 			return false;
 		} catch (RuntimeException e) {
@@ -362,12 +362,12 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 	}
 	
 	@Override
-	public void onDocumentUpdate(String path, DocumentsClientContext context) {
+	public void onDocumentUpdate(String path) {
 		evictCaches(path);
 	}
 
 	@Override
-	public void onFolderUpdate(String path, DocumentsClientContext context) {
+	public void onFolderUpdate(String path) {
 		evictCaches(path);
 	}
 
