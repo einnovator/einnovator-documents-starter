@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.security.Principal;
-import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
@@ -20,6 +19,7 @@ import org.einnovator.documents.client.manager.DocumentManager;
 import org.einnovator.documents.client.model.Document;
 import org.einnovator.documents.client.model.ShareType;
 import org.einnovator.documents.client.modelx.DocumentOptions;
+import org.einnovator.util.PathUtil;
 import org.einnovator.util.UriUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -56,6 +56,7 @@ public class FileUploadController extends ControllerBase {
 			@RequestParam(value = "pwd", required = false) String folder,
 			@RequestParam(value = "filename", required = false) String filename,
 			@RequestParam(value = "unique", required = false) Boolean unique,
+			@RequestParam(value = "tmp", required = false) Boolean tmp,
 			@RequestParam(value = "id", required = false) String id, Document document,
 			@RequestParam(required = false) Boolean crop,
 			DocumentOptions options,
@@ -63,19 +64,6 @@ public class FileUploadController extends ControllerBase {
 
 		if (principal == null) {
 			return unauthorized("upload", response);
-		}
-
-		String name = file.getOriginalFilename();
-
-		if (!StringUtils.isEmpty(key)) {
-			List<String> validExtensions = getValidExtensions(key);
-
-			key = key.toLowerCase();
-			String extension = name.substring(name.lastIndexOf(".") + 1);
-
-			if (validExtensions != null && !validExtensions.contains(extension.toLowerCase())) {
-				return badrequest("upload: Invalid file extension:", response, extension.toLowerCase());
-			}
 		}
 
 		InputStream in;
@@ -93,20 +81,18 @@ public class FileUploadController extends ControllerBase {
 		if (unique==null) {
 			unique = !StringUtils.hasText(filename);
 		}
-		if (!StringUtils.hasText(filename)) {
-			filename = file.getOriginalFilename();
-		}
-		String resourcePath = useTmp(key)
-				? getTmpResourcePath(key, filename,	unique)
-				: getResourcePath(key, folder, filename, unique);
+		String path = Boolean.TRUE.equals(tmp) ? getTmpResourcePath(key, filename, file.getOriginalFilename(), unique) : 
+			getResourcePath(key, folder, filename, file.getOriginalFilename(), unique);
 
-		document.setName(name);
 		document.setInputStream(in);
-
+		document.setPath(path);
+		document.setNameFromPath(PathUtil.DELIMITER);
+		String name = document.getName();
+		
 		URI uri = null;
 		try {
 			setupToken(principal, authentication);
-			document.setPath(resourcePath);
+			
 			if (options.getSharing()==null) {
 				options.withSharing(ShareType.PUBLIC);
 			}
@@ -125,7 +111,7 @@ public class FileUploadController extends ControllerBase {
 		}
 
 		if (logger.isDebugEnabled()) {
-			debug("upload", key, name, id, uri);			
+			logger.debug(String.format("upload: %s %s %s %s", path, key, filename, file.getOriginalFilename()));
 		}
 
 		return ResponseEntity.created(uri).build();
@@ -148,7 +134,7 @@ public class FileUploadController extends ControllerBase {
 				side = width;
 			}
 			BufferedImage newImage = originalImgage.getSubimage(width / 2 - (side / 2), height / 2 - (side / 2), side, side);
-			File outFile = File.createTempFile(file.getOriginalFilename() + "-cropped", "tmp");
+			File outFile = File.createTempFile(file.getOriginalFilename(), null);
 			ImageIO.write(newImage, format, outFile);
 			return outFile;
 		} catch (IOException e) {
@@ -156,32 +142,17 @@ public class FileUploadController extends ControllerBase {
 		}
 	}
 
-	protected List<String> getValidExtensions(String key) {
-		FilesConfiguration config = getFileConfiguration();
-		if (config != null) {
-			return config.getExts(key);
-		}
-		return null;
+
+	protected String getTmpResourcePath(String key, String name, String originalName, boolean unique) {
+		return UploadUtils.getTmpResourcePath(key, name, originalName, unique, getFileConfiguration());
 	}
 
-	protected String getLocation(String key) {
-		FilesConfiguration config = getFileConfiguration();
-		if (config != null) {
-			return config.getLocation(key);
-		}
-		return null;
+	protected String getResourcePath(String key, String folder, String name,  String originalName, boolean unique) {
+		return UploadUtils.getResourcePath(key, folder, name, originalName, unique, getFileConfiguration());
 	}
 
-	protected String getTmpResourcePath(String key, String name, boolean appendUuid) {
-		return UploadUtils.getTmpResourcePath(key, name, appendUuid, getFileConfiguration());
-	}
-
-	protected String getResourcePath(String key, String folder, String name, boolean appendUuid) {
-		return UploadUtils.getResourcePath(key, folder, name, appendUuid, getFileConfiguration());
-	}
-
-	protected String getResourceName(String key, String name, boolean appendUuid) {
-		return UploadUtils.getResourceName(key, name, appendUuid, getFileConfiguration());
+	protected String getResourceName(String key, String name, String originalName, boolean unique) {
+		return UploadUtils.getResourceName(key, name, originalName, unique, getFileConfiguration());
 	}
 
 	protected String generateUUID(String key, String name) {
@@ -206,28 +177,20 @@ public class FileUploadController extends ControllerBase {
 		return uri.replace(tmp, getFolder(key));
 	}
 
+	protected String getFolder(String key) {
+		FilesConfiguration config = getFileConfiguration();
+		if (config != null) {
+			return config.getRoot();
+		}
+		return null;
+	}
+
 	protected String getTmpFolder() {
 		FilesConfiguration config = getFileConfiguration();
 		if (config != null) {
 			return config.getTmp();
 		}
 		return null;
-	}
-
-	protected String getFolder(String key) {
-		FilesConfiguration config = getFileConfiguration();
-		if (config != null && !StringUtils.isEmpty(key)) {
-			return config.getFolder(key);
-		}
-		return null;
-	}
-
-	protected boolean useTmp(String key) {
-		FilesConfiguration config = getFileConfiguration();
-		if (config != null && !StringUtils.isEmpty(key)) {
-			return config.useTmpFor(key);
-		}
-		return config != null ? config.isUseTmp() : false;
 	}
 
 	protected FilesConfiguration getFileConfiguration() {

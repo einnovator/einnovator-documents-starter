@@ -18,11 +18,11 @@ public class UploadUtilsTests {
 	public void test() {
 		FilesConfiguration config = new FilesConfiguration();
 		config.setRoot("/.upload");
-		String fn = getResourceName(null, "test.png", true, config);
+		String fn = getResourceName("key", "test.png", "original.png", true, config);
 		System.out.println(fn);
-		fn = getResourceName(null, "/xx/test.png", true, config);
+		fn = getResourceName("key", "/xx/test.png", null, true, config);
 		System.out.println(fn);
-		String fp = getResourcePath(null, null, "test.png", true, config);
+		String fp = getResourcePath("key", null, "test.png",  "original.png", true, config);
 		System.out.println(fp);
 	}
 
