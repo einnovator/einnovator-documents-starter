@@ -7,8 +7,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+
+import javax.activation.MimetypesFileTypeMap;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
@@ -16,10 +21,13 @@ import org.apache.commons.logging.LogFactory;
 import org.einnovator.documents.client.config.DocumentsClientConfiguration;
 
 import org.einnovator.documents.client.model.Document;
+import org.einnovator.documents.client.model.DocumentType;
 import org.einnovator.documents.client.modelx.DocumentFilter;
 import org.einnovator.documents.client.modelx.DocumentOptions;
+import org.einnovator.util.FileUtil;
 import org.einnovator.util.PathUtil;
 import org.einnovator.util.UriUtils;
+import org.einnovator.util.format.RichDateFormatter;
 import org.einnovator.util.security.Authority;
 import org.einnovator.util.security.SecurityUtil;
 import org.einnovator.util.web.WebUtil;
@@ -30,6 +38,8 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.PayloadApplicationEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.Formatter;
+import org.springframework.util.StringUtils;
 
 public class LocalDocumentManager extends ManagerBase implements DocumentManager {
 
@@ -41,6 +51,8 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 	@Autowired
 	private DocumentsClientConfiguration config;
 	
+	protected Formatter<Date> dateFormatter = new RichDateFormatter();
+
 	private CacheManager cacheManager;
 	
 	@Autowired
@@ -78,10 +90,7 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 	}
 	
 	private String makeUrl(String path) {
-		String baseUrl = WebUtil.getBaseUrl();
-		if (baseUrl==null) {
-			baseUrl = "file://";
-		}
+		String baseUrl = getBaseUrl();
 		String principalName = SecurityUtil.getPrincipalName();
 		String princialRoot =  principalName!=null ? "~" + principalName : "";
 		String url = PathUtil.concatAll(baseUrl, "/api/_/", princialRoot, path);
@@ -133,8 +142,9 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 			if (Boolean.TRUE.equals(options.getAttachments())) {	
 			}
 
-			return new Document(path, null, inputStream);
-			
+			Document document = makeDocument(file, path);
+			document.setInputStream(inputStream);
+			return document;
 		} catch (IOException | RuntimeException e) {
 			logger.error(String.format("read: %s %s %s",  e, path, options));
 			return null;
@@ -198,11 +208,7 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 					}
 				}
 				n++;
-				String fpath = file.getPath().replace("\\", "/"); 
-				Document document = new Document()
-						.withName(file.getName())
-						.withPath(fpath)
-						;
+				Document document =makeDocument(file, path);
 				documents.add(document);
 			}
 			return documents;
@@ -213,6 +219,24 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 		}
 	}
 
+	protected Document makeDocument(File file, String path) {
+		Document document = (Document)new Document()
+				.withName(file.getName())
+				.withPath(PathUtil.concat(path, file.getName()))
+				.withUri(makeUrl(path))
+				.withContentLength(file.length())
+				.withType(file.isDirectory() ? DocumentType.FILE : file.isFile() ? DocumentType.FILE : null)
+				.withFolder(file.isDirectory())
+				.withContentType(getMimeTypeFromExt(file.getName()))
+				.withLastModified(new Date(file.lastModified()))
+				;
+		Date lastModified = document.getLastModified();
+		if (lastModified!=null) {
+			document.setLastModifiedFormatted(dateFormatter.print(lastModified, Locale.getDefault()));										
+		}
+		return document;
+	}
+	
 	@Override
 	public boolean delete(String path, DocumentOptions options) {
 		try {
@@ -441,4 +465,28 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 
 	}
 
+	public static String getMimeTypeFromExt(String filename) {
+		String ext = FileUtil.getExtention(filename);
+		if (!StringUtils.hasText(ext)) {
+			return null;
+		}
+		String mimeType = URLConnection.guessContentTypeFromName(filename);
+		if (mimeType!=null) {
+			return mimeType;
+		}
+		MimetypesFileTypeMap fileTypeMap = new MimetypesFileTypeMap();
+		mimeType = fileTypeMap.getContentType(filename);
+		if (mimeType!=null) {
+			return mimeType;
+		}
+		return null;
+	}
+	
+	protected String getBaseUrl() {
+		String baseUrl = WebUtil.getBaseUrl();
+		if (baseUrl==null) {
+			baseUrl = "http://localhost";
+		}		
+		return baseUrl;
+	}
 }

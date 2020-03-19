@@ -110,7 +110,18 @@ public class OwnedEntity extends EntityBase {
 		return this;
 	}
 
-
+	
+	/**
+	 * Set the value of property {@code groupId}.
+	 *
+	 * @param groupId the groupId to with
+	 * @return this {@code OwnedEntity}
+	 */
+	public OwnedEntity withGroupId(String groupId) {
+		this.groupId = groupId;
+		return this;
+	}
+	
 	/**
 	 * Set the value of property {@code user}.
 	 *

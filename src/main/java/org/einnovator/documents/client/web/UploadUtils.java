@@ -44,10 +44,7 @@ public class UploadUtils {
 			sb.append(key.trim());
 		}
 		String ext = null;
-		int i0 = name.lastIndexOf("/");
-		if (i0!=-1 && i0<name.length()-1) {
-			name = name.substring(i0+1);
-		}
+
 		if (originalName==null || originalName.isEmpty()) {
 			originalName = name;
 		}
@@ -56,6 +53,12 @@ public class UploadUtils {
 		}
 		if (name==null || name.isEmpty()) {
 			name = key;
+		}
+		if (name!=null) {
+			int i0 = name.lastIndexOf("/");
+			if (i0!=-1 && i0<name.length()-1) {
+				name = name.substring(i0+1);
+			}			
 		}
 		if (StringUtils.hasText(originalName)) {
 			int i= originalName.indexOf(".");
