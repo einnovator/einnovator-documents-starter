@@ -18,6 +18,10 @@ public class ManagerBase extends CachingManagerBase {
 		if (data==null || !data.getClass().getSimpleName().equals(NOTIFICATION_TYPE)) {
 			return null;
 		}
+		String sourceType = (String)MapUtil.resolve("source.type", data);
+		if (sourceType==null || !type.getSimpleName().equalsIgnoreCase(sourceType)) {
+			return null;
+		}
 		return MappingUtils.convert(MapUtil.resolve("source.details", data), type);
 	}
 
