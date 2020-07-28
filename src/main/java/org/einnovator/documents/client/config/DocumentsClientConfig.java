@@ -28,10 +28,10 @@ public class DocumentsClientConfig {
 	@Autowired
 	private DocumentsClientConfiguration config;
 	
-	@Autowired
+	@Autowired(required = false)
 	private OAuth2ClientContext oauth2ClientContext;
 
-	@Autowired
+	@Autowired(required = false)
 	private OAuth2ProtectedResourceDetails resourceDetails;
 	
 	@Autowired
@@ -44,14 +44,15 @@ public class DocumentsClientConfig {
 
 
 	@Bean
+	@Profile("!localfs")
 	public OAuth2RestTemplate documentsRestTemplate() {
 		OAuth2RestTemplate template = new OAuth2RestTemplate(resourceDetails, oauth2ClientContext);			
 		template.setRequestFactory(config.getConnection().makeClientHttpRequestFactory());
 		return template;
 	}
 
-
 	@Bean
+	@Profile("!localfs")
 	public DocumentsClient documentsClient() {
 		return new DocumentsClient();
 	}
