@@ -1,3 +1,4 @@
+
 package org.einnovator.documents.client.config;
 
 import org.einnovator.util.PathUtil;
@@ -39,15 +40,15 @@ public class DocumentsEndpoints {
 	}
 	
 	public static String create(String path, DocumentsClientConfiguration config) {
-		return config.getServer() + PathUtil.concat("/api/_meta/", encodePath(path));
+		return config.getServer() + PathUtil.concat("/api/_create/", encodePath(path));
 	}
 	
 	public static String restore(String path, DocumentsClientConfiguration config) {
 		return config.getServer() + PathUtil.concat("/api/_restore/", encodePath(path));
 	}
 	
-	public static String folder(String path, DocumentsClientConfiguration config) {
-		return config.getServer() + PathUtil.concat("/api/__/", encodePath(path));
+	public static String mkdir(String path, DocumentsClientConfiguration config) {
+		return config.getServer() + PathUtil.concat("/api/_mkdir/", encodePath(path));
 	}
 
 	public static String copy(String path, DocumentsClientConfiguration config) {

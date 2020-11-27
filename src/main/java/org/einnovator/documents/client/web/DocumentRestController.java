@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 
@@ -45,7 +46,7 @@ public class DocumentRestController extends ControllerBase {
 	public ResponseEntity<Void> download(DocumentOptions options,
 			HttpServletResponse response, HttpServletRequest request, Principal principal) {
 		
-		String path = getPath(request, "/_/");
+		String path = getPath(request, "/api/_/");
 
 		try {
 			if (logger.isDebugEnabled()) {
@@ -135,11 +136,11 @@ public class DocumentRestController extends ControllerBase {
 		return ok(document, "meta", response);
 	}
 	
-	@PostMapping("/__/**")
+	@PostMapping("/_mkdir/**")
 	public ResponseEntity<Void> mkdir(@ModelAttribute("document") Document document, DocumentOptions options,
 			HttpServletRequest request, Principal principal, Authentication authentication, HttpServletResponse response) {
 
-		String path = getPath(request, "/api/__/");
+		String path = getPath(request, "/api/_mkdir/");
 		
 		try {
 			setupToken(principal, authentication);
@@ -153,7 +154,25 @@ public class DocumentRestController extends ControllerBase {
 		}		
 	}
 	
-	
+	@PostMapping({ "/_create/**" })
+	public ResponseEntity<?> create(Document document, DocumentOptions options,
+			@RequestBody(required=false) byte[] bytes,
+			HttpServletRequest request, HttpServletResponse response,  Principal principal, Authentication authentication) {
+			String path = getPath(request, "/api/_create/");
+		
+		try {
+			setupToken(principal, authentication);
+			document.withPath(path).withContent(bytes);
+			URI uri = manager.write(document, options);
+			if (uri==null) {
+				return badrequest("create", response, path);
+			}
+			return ResponseEntity.created(uri).build();
+		} catch (RuntimeException e) {
+			return badrequest("create", response, e, path);
+		}
+	}
+
 	@DeleteMapping("/__/**")
 	public ResponseEntity<Void> delete(DocumentOptions options,
 			Principal principal, Authentication authentication, HttpServletRequest request, HttpServletResponse response) {

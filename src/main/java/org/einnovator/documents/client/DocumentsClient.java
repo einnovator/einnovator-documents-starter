@@ -481,7 +481,7 @@ public class DocumentsClient {
 	 * @throws RestClientException if request fails
 	 */
 	public URI mkdir(String path, DocumentOptions options) {
-		URI uri = makeURI(DocumentsEndpoints.folder(path, config));
+		URI uri = makeURI(DocumentsEndpoints.mkdir(path, config));
 		uri = appendQueryParameters(uri, options);
 		RequestEntity<Void> request = RequestEntity.post(uri).accept(MediaType.APPLICATION_JSON).build();
 		ResponseEntity<?> response = exchange(request, Void.class, options);
