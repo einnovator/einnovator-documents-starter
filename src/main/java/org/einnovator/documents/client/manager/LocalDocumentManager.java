@@ -103,7 +103,7 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 	private String getLocalPath(String path) {
 		String principalName = SecurityUtil.getPrincipalName();
 		String princialRoot =  principalName!=null ? principalName : "";
-		if (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("file://")) {
+		if (path.startsWith("http:") || path.startsWith("https:") || path.startsWith("file:")) {
 			int i = path.indexOf("~");
 			if (i>0) {
 				path = path.substring(0, i-1);
