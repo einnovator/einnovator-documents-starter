@@ -63,7 +63,10 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 	public LocalDocumentManager() {
 	}
 
-
+	public LocalDocumentManager(DocumentsClientConfiguration config) {
+		this.config = config;
+	}
+	
 	@Override
 	public URI write(Document document, DocumentOptions options) {
 		try {
@@ -106,7 +109,12 @@ public class LocalDocumentManager extends ManagerBase implements DocumentManager
 		if (path.startsWith("http:") || path.startsWith("https:") || path.startsWith("file:")) {
 			int i = path.indexOf("~");
 			if (i>0) {
-				path = path.substring(0, i-1);
+				path = path.substring(i);
+			} else {
+				i = path.indexOf("/", 8);
+				if (i>0) {
+					path = path.substring(i);					
+				}
 			}
 		}
 		if (path.startsWith("/api/_/")) {
