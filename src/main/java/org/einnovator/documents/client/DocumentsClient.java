@@ -41,6 +41,7 @@ import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * Client API for Documents Service.
@@ -71,7 +72,7 @@ public class DocumentsClient {
 	@Qualifier("documentsRestTemplate")
 	private OAuth2RestTemplate restTemplate;
 
-	private OAuth2RestTemplate restTemplate0;
+	private RestTemplate restTemplate0;
 
 	private boolean web = true;
 	
@@ -100,6 +101,17 @@ public class DocumentsClient {
 	 */
 	public DocumentsClient(OAuth2RestTemplate restTemplate, DocumentsClientConfiguration config) {
 		this.restTemplate = restTemplate;
+		this.config = config;
+	}
+	
+	/**
+	 * Create instance of {@code DocumentsClient}.
+	 *
+	 * @param restTemplate the {@code OAuth2RestTemplate} used for HTTP transport
+	 * @param config the {@code DocumentsClientConfiguration}
+	 */
+	public DocumentsClient(RestTemplate restTemplate, DocumentsClientConfiguration config) {
+		this.restTemplate0 = restTemplate;
 		this.config = config;
 	}
 
@@ -148,7 +160,7 @@ public class DocumentsClient {
 	 *
 	 * @return the restTemplate0
 	 */
-	public OAuth2RestTemplate getRestTemplate0() {
+	public RestTemplate getRestTemplate0() {
 		return restTemplate0;
 	}
 
@@ -157,7 +169,7 @@ public class DocumentsClient {
 	 *
 	 * @param restTemplate0 the value of property restTemplate0
 	 */
-	public void setRestTemplate0(OAuth2RestTemplate restTemplate0) {
+	public void setRestTemplate0(RestTemplate restTemplate0) {
 		this.restTemplate0 = restTemplate0;
 	}
 
@@ -592,7 +604,7 @@ public class DocumentsClient {
 	 * @throws RestClientException if request fails
 	 */
 	protected <T> ResponseEntity<T> exchange(RequestEntity<?> request, Class<T> responseType, RequestOptions options) throws RestClientException {
-		OAuth2RestTemplate restTemplate = getRequiredRestTemplate();
+		RestTemplate restTemplate = getRequiredRestTemplate();
 
 		try {
 			return exchange(restTemplate, request, responseType);			
@@ -614,7 +626,7 @@ public class DocumentsClient {
 	 * @throws RestClientException if request fails
 	 */
 	protected URI postForLocation(URI uri, HttpEntity<LinkedMultiValueMap<String, Object>> request, RequestOptions options) throws RestClientException {
-		OAuth2RestTemplate restTemplate = getRequiredRestTemplate();
+		RestTemplate restTemplate = getRequiredRestTemplate();
 		try {
 			return postForLocation(restTemplate, uri, request);			
 		} catch (RuntimeException e) {
@@ -635,10 +647,12 @@ public class DocumentsClient {
 	 * 
 	 * @return the {@code OAuth2RestTemplate}
 	 */
-	protected OAuth2RestTemplate getRequiredRestTemplate() {
-		OAuth2RestTemplate restTemplate = this.restTemplate;
-		if (WebUtil.getHttpServletRequest()==null && this.restTemplate0!=null) {
-			restTemplate = this.restTemplate0;
+	protected RestTemplate getRequiredRestTemplate() {
+		RestTemplate restTemplate = this.restTemplate;
+		if (this.restTemplate0!=null) {
+			if (restTemplate==null || WebUtil.getHttpServletRequest()==null) {
+				restTemplate = this.restTemplate0;				
+			}
 		}			
 		return restTemplate;
 	}
@@ -650,13 +664,13 @@ public class DocumentsClient {
 	 * May be overriden by sub-classes for custom/advanced functionality.
 	 * 
 	 * @param <T> response type
-	 * @param restTemplate the {@code OAuth2RestTemplate} to use
+	 * @param restTemplate the {@code RestTemplate} to use
 	 * @param request the {@code RequestEntity}
 	 * @param responseType the response type
 	 * @return the result {@code ResponseEntity}
 	 * @throws RestClientException if request fails
 	 */
-	protected <T> ResponseEntity<T> exchange(OAuth2RestTemplate restTemplate, RequestEntity<?> request, Class<T> responseType) throws RestClientException {
+	protected <T> ResponseEntity<T> exchange(RestTemplate restTemplate, RequestEntity<?> request, Class<T> responseType) throws RestClientException {
 		return restTemplate.exchange(request, responseType);
 	}
 
@@ -666,14 +680,14 @@ public class DocumentsClient {
 	 * May be overriden by sub-classes for custom/advanced functionality.
 	 * 
 	 * @param <T> response type
-	 * @param restTemplate the {@code OAuth2RestTemplate} to use
+	 * @param restTemplate the {@code RestTemplate} to use
 	 * @param uri the request {@code URI}
 	 * @param request the {@code HttpEntity}
 	 * @param request the {@code RequestEntity}
 	 * @return the result {@code ResponseEntity}
 	 * @throws RestClientException if request fails
 	 */
-	protected <T> URI postForLocation(OAuth2RestTemplate restTemplate, URI uri, HttpEntity<LinkedMultiValueMap<String, Object>> request) throws RestClientException {
+	protected <T> URI postForLocation(RestTemplate restTemplate, URI uri, HttpEntity<LinkedMultiValueMap<String, Object>> request) throws RestClientException {
 		return restTemplate.postForLocation(uri, request);
 	}
 	
