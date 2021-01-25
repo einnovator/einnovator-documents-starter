@@ -43,7 +43,7 @@ public class DocumentsClientConfiguration extends ObjectBase {
 	/**
 	 * Set the value of property {@code server}.
 	 *
-	 * @param server the server to set
+	 * @param server the server
 	 */
 	public void setServer(String server) {
 		this.server = server;
@@ -61,7 +61,7 @@ public class DocumentsClientConfiguration extends ObjectBase {
 	/**
 	 * Set the value of property {@code files}.
 	 *
-	 * @param files the files to set
+	 * @param files the files
 	 */
 	public void setFiles(FilesConfiguration files) {
 		this.files = files;
@@ -79,7 +79,7 @@ public class DocumentsClientConfiguration extends ObjectBase {
 	/**
 	 * Set the value of property {@code connection}.
 	 *
-	 * @param connection the connection to set
+	 * @param connection the connection
 	 */
 	public void setConnection(ConnectionConfiguration connection) {
 		this.connection = connection;
@@ -98,7 +98,7 @@ public class DocumentsClientConfiguration extends ObjectBase {
 	/**
 	 * Set the value of property {@code localRoot}.
 	 *
-	 * @param localRoot the localRoot to set
+	 * @param localRoot the localRoot
 	 */
 	public void setLocalRoot(String localRoot) {
 		this.localRoot = localRoot;
@@ -117,7 +117,7 @@ public class DocumentsClientConfiguration extends ObjectBase {
 	/**
 	 * Set the value of property {@code local}.
 	 *
-	 * @param local the local to set
+	 * @param local the local
 	 */
 	public void setLocal(Boolean local) {
 		this.local = local;

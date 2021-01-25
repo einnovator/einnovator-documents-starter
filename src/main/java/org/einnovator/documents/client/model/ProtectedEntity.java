@@ -76,7 +76,7 @@ abstract public class ProtectedEntity extends OwnedEntity {
 	/**
 	 * Set the value of property {@code authorities}.
 	 *
-	 * @param authorities the authorities to set
+	 * @param authorities the authorities
 	 */
 	public void setAuthorities(List<Authority> authorities) {
 		this.authorities = authorities;

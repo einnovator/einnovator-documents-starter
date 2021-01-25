@@ -851,7 +851,7 @@ public class Document extends ProtectedEntity {
 	/**
 	 * Set the value of property {@code img}.
 	 *
-	 * @param img the img to set
+	 * @param img the img
 	 */
 	public void setImg(String img) {
 		this.img = img;
