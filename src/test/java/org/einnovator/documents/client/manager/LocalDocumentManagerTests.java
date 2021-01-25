@@ -1,7 +1,7 @@
 package org.einnovator.documents.client.manager;
 
 import org.einnovator.documents.client.config.DocumentsClientConfiguration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class LocalDocumentManagerTests {
 

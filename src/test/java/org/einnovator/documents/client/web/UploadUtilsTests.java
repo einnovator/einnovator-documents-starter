@@ -7,11 +7,14 @@ import static org.einnovator.documents.client.web.UploadUtils.getResourceName;
 import static org.einnovator.documents.client.web.UploadUtils.getResourcePath;
 
 import org.einnovator.documents.client.config.FilesConfiguration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  *
  */
+@ExtendWith(SpringExtension.class)
 public class UploadUtilsTests {
 
 	@Test

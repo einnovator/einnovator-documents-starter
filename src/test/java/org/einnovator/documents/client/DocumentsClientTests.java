@@ -4,11 +4,11 @@ import static org.einnovator.documents.client.modelx.DocumentOptions.CONTENT_AND
 import static org.einnovator.documents.client.modelx.DocumentOptions.FORCE;
 import static org.einnovator.documents.client.modelx.DocumentOptions.META_ONLY;
 import static org.einnovator.documents.client.modelx.DocumentOptions.PUBLIC;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -30,8 +30,8 @@ import org.einnovator.documents.client.modelx.DocumentOptions;
 import org.einnovator.sso.client.SsoTestHelper;
 import org.einnovator.util.UriUtils;
 import org.einnovator.util.security.Authority;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -39,10 +39,10 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.util.StreamUtils;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = { DocumentsClientConfig.class, DocumentsClientTests.TestConfig.class }, webEnvironment = WebEnvironment.NONE)
 @TestPropertySource(properties = { "documents.server=http://localhost:2021", "sso.server=http://localhost:2001",
 		"spring.cache.ehcache.config:ehcache-sso-starter.xml" })
